@@ -1,0 +1,74 @@
+<%@ WebService Language="C#" Class="LoisAndClark.DocLibExtenderService" %>
+
+using System;
+using System.Web;
+using System.Web.Services;
+using System.Web.Services.Protocols;
+using Microsoft.SharePoint;
+using System.Collections;
+using System.Data;
+using System.Diagnostics;
+
+namespace LoisAndClark
+{
+  [WebService(Namespace = "http://tempuri.org/")]
+  [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+  [ScriptService]
+  public class DocLibExtenderService : System.Web.Services.WebService
+  {
+    static DataView _dvLists = null;
+
+    private void InitLists(string strUrl)
+    {
+      if (_dvLists == null)
+       {
+         DataTable dtLists = new DataTable();
+         dtLists.Columns.Add("ListName", typeof(string));
+
+         SPSite objSites = new SPSite(strUrl);
+         SPWeb objSite = objSites.OpenWeb();
+         SPListCollection objLists = objSite.Lists;
+
+         foreach (SPList objList in objLists)
+         {
+           DataRow drList = dtLists.NewRow();
+           drList["ListName"] = objList.Title;
+           dtLists.Rows.Add(drList);
+       }
+
+       _dvLists = dtLists.DefaultView;
+       _dvLists.Sort = "listname ASC";
+      }
+    }
+
+    //Note: it is very important to use the correct names for the arguments!
+    // The names of the arguments have to match exactly.
+    [WebMethod]
+    public string[] GetLists(string prefixText, int count)
+    {
+      string strReturn = String.Empty;
+
+      try
+      {
+        string strUrl = "http://[server]/[site]/";
+        InitLists(strUrl);
+        string strFilter = String.Format("listname LIKE '{0}%'", prefixText);
+        _dvLists.RowFilter = strFilter;
+
+        string[] arrLists = new string[_dvLists.Count];
+        for (int i = 0; i < _dvLists.Count; i++)
+        {
+          if ( i > count - 1 ) break;
+          arrLists[i] = _dvLists[i]["ListName"].ToString();
+        }
+
+        return arrLists;
+      }
+      catch (Exception err)
+      {
+        Trace.Write(err.Message);
+        throw;
+      }
+    }
+  }
+}

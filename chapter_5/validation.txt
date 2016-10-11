@@ -1,0 +1,238 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.Modeling;
+using Microsoft.VisualStudio.Modeling.Validation;
+
+namespace LoisAndClark.WebPartConnectionLanguage
+{
+	/// <summary>
+	/// Validate every web part.
+	/// </summary>
+	[ValidationState(ValidationState.Enabled)]
+	partial class WebPart
+	{
+		[ValidationMethod(ValidationCategories.Open | ValidationCategories.Save | ValidationCategories.Menu)]
+		public void ValidateConnections(ValidationContext objContext)
+		{
+			InitValidationRules();
+			
+			// Determine web parts that act as a provider to this web part.
+			LinkedElementCollection<WebPart> objProviders = Connection.GetProvider(this);
+			
+			// Determine web parts that act as a consumer to this web part.
+			LinkedElementCollection<WebPart> objConsumers = Connection.GetConsumer(this);
+
+			// If this web part doesn't have a provider or a consumer, it is valid.
+			if (objProviders.Count == 0 && objConsumers.Count == 0)
+			{
+				return;
+			}
+
+			// A consumer can only have a single provider.
+			if (objProviders.Count > 1)
+			{
+				string strErrorMessage = String.Format("Web part {0} has multiple providers", Name);
+				objContext.LogError(strErrorMessage, "ERROR", this);
+			}
+
+			// Determine interfaces implemented by consumer.
+			List<string> objInterfaces = new List<string>();			
+
+			foreach (IConnectable objInterface in IConnectableInterface)
+			{
+				objInterfaces.Add(objInterface.GetType().ToString());
+			}
+
+			// Every provider must implement an interface.
+			if (objConsumers.Count > 0 && objInterfaces.Count == 0)
+			{
+				string strErrorMessage = String.Format("Web part {0} doesn't implement any interface", Name);
+				objContext.LogError(strErrorMessage, "ERROR", this);
+			}
+
+			// Stop the validation process if this web part does not implement any interface.
+			// In this case, the web part is always compatible with a provider.
+			if (objInterfaces.Count == 0)
+			{
+				return;
+			}
+
+			// If this web part has a provider, let's determine if it's compatible with 
+			// this web part.
+			if (objProviders.Count > 0)
+			{				
+				ValidateConnection(objContext, objProviders);
+				
+			}
+
+			//Check custom interfaces.
+		}
+
+		/// <summary>
+		/// Determines if a custom interface connection is valid
+		/// </summary>
+		/// <param name="objContext"></param>
+		private void ValidateCustomInterfaces(ValidationContext objContext, LinkedElementCollection<WebPart> objProviders)
+		{
+
+		}
+
+		/// <summary>
+		/// Checks if a connection is a valid web part to web part connection.
+		/// </summary>
+		private void ValidateConnection(ValidationContext objContext, LinkedElementCollection<WebPart> objProviders)
+		{
+			bool blnIsValidConnection = false;
+
+			foreach (IConnectable objInterface in IConnectableInterface)
+			{
+				string strCurrentInterfaceName = objInterface.ToString();
+				Dictionary<string, string> objRules = GetValidationRules(strCurrentInterfaceName);
+				if (objRules == null) continue;
+
+				foreach (string strProviderInterface in objRules.Values)
+				{
+					// Stop checking the rules once we've found a valid matching interface
+					if (blnIsValidConnection) break;
+
+					// Check interfaces of provider web part.
+					// Remember, because of other validation rules,
+					// there is only one provider allowed.
+					WebPart objProvider = objProviders[0];
+					foreach (IConnectable objProviderInterface in objProvider.IConnectableInterface)
+					{
+						string strCurrentProviderInterfaceName = objProviderInterface.ToString();
+						if (strCurrentProviderInterfaceName.Contains(strProviderInterface))
+						{														
+							// Determines, if it is a custom interface, if the connection is valid
+							if (strCurrentProviderInterfaceName.Contains("CustomInterface"))
+							{
+								blnIsValidConnection = (objInterface.Name == objProviderInterface.Name);
+							}
+							else
+							{
+								// Found a valid matching interface							
+								blnIsValidConnection = true;
+							}
+							break;
+						}
+					}
+				}
+
+				if (!blnIsValidConnection) DisplayValidationErrors(objContext);				
+			}
+		}
+
+		/// <summary>
+		/// Generates validation error information
+		/// </summary>
+		private void DisplayValidationErrors(ValidationContext objContext)
+		{
+			string strErrorMessage = String.Format("The following rules apply to domain object {0}:\n", Name);
+
+			foreach (IConnectable objInterface in IConnectableInterface)
+			{
+				string strCurrentInterfaceName = objInterface.ToString();
+				Dictionary<string, string> objRules = GetValidationRules(strCurrentInterfaceName);
+
+				if (objRules == null)
+				{										
+					// If no rules exist about this situation, it's an unforeseen situation
+					strErrorMessage += String.Format("Interface {0} is not a valid consumer interface.\n", strCurrentInterfaceName);
+				}
+				else
+				{
+					foreach (string strKey in objRules.Keys)
+					{
+						strErrorMessage += String.Format("Rule {0}: valid provider {1}", strKey, objRules[strKey]) + "\n";
+					}
+
+					strErrorMessage += "Please note that web parts implementing a custom interface have to have a matching name";
+				}
+			}
+
+			objContext.LogError(strErrorMessage, "VALIDATION ERROR", this);
+		}
+
+		/// <summary>
+		/// Retrieves validation rules for web part connections.
+		/// </summary>
+		private Dictionary<string, string> GetValidationRules(string strConsumerInterface)
+		{
+			if (strConsumerInterface.Contains("IWebPartField"))
+			{
+				return _objFieldConsumerRules;
+			}
+			else if (strConsumerInterface.Contains("IWebPartRow"))
+			{
+				return _objRowConsumerRules;
+			}
+			else if (strConsumerInterface.Contains("IWebPartTable"))
+			{
+				return _objTableConsumerRules;
+			}
+			else if (strConsumerInterface.Contains("IWebPartParameters"))
+			{
+				return _objParameterConsumerRules;
+			}
+			else if (strConsumerInterface.Contains("CustomInterface"))
+			{
+				return _objCustomConsumerRules;
+			}
+			else
+			{
+				return null;
+			}
+		}
+
+		private static Dictionary<string, string> _objFieldConsumerRules;
+		private static Dictionary<string, string> _objRowConsumerRules;
+		private static Dictionary<string, string> _objTableConsumerRules;
+		private static Dictionary<string, string> _objParameterConsumerRules;
+		private static Dictionary<string, string> _objCustomConsumerRules;
+		/// <summary>
+		/// Initializes validation rules in the WPCL.
+		/// </summary>
+		private static void InitValidationRules()
+		{
+			if (_objFieldConsumerRules == null)
+			{
+				// Add valid connections for Field consumers.
+				_objFieldConsumerRules = new Dictionary<string, string>();
+				_objFieldConsumerRules.Add("FieldConsumerRule", "IWebPartField");
+				_objFieldConsumerRules.Add("FieldTransformerRule", "IWebPartRow");
+			}
+
+			if (_objRowConsumerRules == null)
+			{
+				// Add valid connections for Row consumers.
+				_objRowConsumerRules = new Dictionary<string, string>();
+				_objRowConsumerRules.Add("RowConsumerRule", "IWebPartRow");
+			}
+
+			if (_objTableConsumerRules == null)
+			{
+				// Add valid connections for Table consumers.
+				_objTableConsumerRules = new Dictionary<string, string>();
+				_objTableConsumerRules.Add("TableConsumerRule", "IWebPartTable");
+			}
+
+			if (_objParameterConsumerRules == null)
+			{
+				// Add valid connections for Parameter consumers.
+				_objParameterConsumerRules = new Dictionary<string, string>();
+				_objParameterConsumerRules.Add("ParameterConsumerRule", "IWebPartParameters");
+			}
+
+			if (_objCustomConsumerRules == null)
+			{
+				// Add valid connections for Parameter consumers.
+				_objCustomConsumerRules = new Dictionary<string, string>();
+				_objCustomConsumerRules.Add("ParameterConsumerRule", "CustomInterface");
+			}
+		}
+
+	}
+}

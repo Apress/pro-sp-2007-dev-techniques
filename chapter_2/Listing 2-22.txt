@@ -1,0 +1,83 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using System.Web.UI.WebControls;
+using System.Diagnostics;
+using System.Threading;
+using System.Text;
+
+namespace AjaxClient
+{
+  [Guid("be6ec8e3-2706-4f52-bdf9-f6eb18fc65c0")]
+  public class AjaxClient : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    private Label lblDisplay;		
+    protected override void CreateChildControls()
+    {
+      base.CreateChildControls();
+      EnsureUpdatePanelFixups();
+			
+      UpdatePanel pnlHolder = new UpdatePanel();
+      pnlHolder.ID = "UpdatePanel1";
+      pnlHolder.ChildrenAsTriggers = true;
+      pnlHolder.UpdateMode = UpdatePanelUpdateMode.Conditional;
+      Controls.Add(pnlHolder);
+			
+      lblDisplay = new Label();
+      lblDisplay.Text = "Retrieve value via Ajax";
+      pnlHolder.ContentTemplateContainer.Controls.Add(lblDisplay);
+			
+      Button btnSubmit = new Button();
+      btnSubmit.Text = "Get current Processor time";
+      btnSubmit.Click += new EventHandler(OnSubmit);
+      pnlHolder.ContentTemplateContainer.Controls.Add(btnSubmit);
+    }
+
+    private void OnSubmit(object sender, EventArgs eventArgs)
+    {
+      lblDisplay.Text = "processor time: " + GetProcessorTime();
+    }
+
+    public string GetProcessorTime()
+    {
+      try
+      {
+        PerformanceCounter objCounter = new PerformanceCounter();
+        objCounter.CategoryName = "Processor";
+        objCounter.CounterName = "% Processor Time";
+        objCounter.InstanceName = "_Total";
+        objCounter.MachineName = ".";
+        objCounter.ReadOnly = true;
+
+        int intCurrentCpuUsage = Convert.ToInt32(objCounter.NextValue());
+        Thread.Sleep(2000);
+
+        return objCounter.NextValue().ToString();
+      }
+      catch (Exception err)
+      {
+        return err.Message;
+      }
+    }
+
+    private void EnsureUpdatePanelFixups()
+    {
+      if (Page.Form != null)
+      {
+        string strSubmit = Page.Form.Attributes["onsubmit"];
+        if (strSubmit == "return _spFormOnSubmitWrapper();")
+        {
+          Page.Form.Attributes["onsubmit"] = "_spFormOnSubmitWrapper();";
+        }
+      }
+			
+      ScriptManager.RegisterStartupScript(this, typeof(AjaxClient), "UpdatePanelFixup", "_spOriginalFormAction = document.forms[0].action;      
+      _spSuppressFormOnSubmitWrapper=true;", true);
+    }
+  }
+}

@@ -1,0 +1,124 @@
+using System;
+using d = System.Data;
+using System.Collections.Specialized;
+using System.Security.Permissions;
+using System.Security.Principal;
+using Microsoft.ReportingServices.DataProcessing;
+using Microsoft.ReportingServices.Interfaces;
+
+namespace LoisAndClark.SharePointListExtension
+{
+  public class Connection : IDbConnection, IDbConnectionExtension
+  {
+    private string _strConn;
+    private string _strLocName = "MOSS";
+    private string _strImpersonate;
+    private string _strUsername;
+    private string _strPassword;
+    private bool _blnSecurity;
+    private HybridDictionary _objConn = new HybridDictionary();
+    private d.ConnectionState _objConnState = d.ConnectionState.Closed;
+
+    public Connection()
+    { }
+
+    public Connection(string strConnection)
+    {
+      ConnectionString = strConnection;
+    }
+
+    public string ConnectionString
+    {
+      get { return _strConn; }
+      set
+      {
+        _strConn = value;
+        _objConn.Add(_strConn.Substring(0, _strConn.IndexOf("=")).ToLower(), _strConn.Substring(_strConn.IndexOf("=") + 1));
+      }
+    }
+
+    public IDbTransaction BeginTransaction()
+    {
+      throw new NotSupportedException();
+    }
+
+    public void Open()
+    {
+      _objConnState = d.ConnectionState.Open;
+    }
+
+    public void Close()
+    {
+      _objConnState = d.ConnectionState.Closed;
+    }
+
+    public IDbCommand CreateCommand()
+    {
+      return new Command(this);
+    }
+
+    public string LocalizedName
+    {
+      get { return _strLocName; }
+      set { _strLocName = value; }
+    }
+
+    public void SetConfiguration(string configuration)
+    { }
+
+    public void Dispose()
+    { }
+
+    public int ConnectionTimeout
+    {
+      get { return 0; }
+      set { }
+    }
+
+    public string strDataSourcePath
+    {
+      get
+      {
+        if (_objConn.Contains("data source"))
+        {
+          string strUrl = (string)_objConn["data source"];
+          if (!strUrl.EndsWith("/"))
+          {
+            strUrl = strUrl + "/";
+          }
+          return strUrl;
+        }
+        return "";
+      }
+    }
+
+    public d.ConnectionState State
+    {
+      get { return _objConnState; }
+    }
+
+    public bool IntegratedSecurity
+    {
+      get { return _blnSecurity; }
+      set { _blnSecurity = value; }
+    }
+
+    public string UserName
+    {
+      get { return _strUsername; }
+      set { _strUsername = value; }
+    }
+
+    public string Password
+    {
+      get { return _strPassword; }
+      set { _strPassword = value; }
+    }
+
+    public string Impersonate
+    {
+      set { _strImpersonate = value; }
+    }
+
+  }
+}

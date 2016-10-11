@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<QueryPacket xmlns="urn:Microsoft.Search.Query" Revision="1000">
+  <Query domain="QDomain">
+    <SupportedFormats>
+      <Format>urn:Microsoft.Search.Response.Document.Document</Format>
+    </SupportedFormats>
+    <Context>
+      <QueryText language="en-US" type="MSSQLFT">
+      <![CDATA[ 
+      SELECT Title, Rank, Size, Description, Write, Path 
+      FROM portal..scope()  
+      ORDER BY "Rank" DESC
+      ]]>
+      </QueryText>
+    </Context>
+    <Range>
+      <StartAt>1</StartAt>
+      <Count>100</Count>
+    </Range>
+  </Query>
+</QueryPacket>

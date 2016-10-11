@@ -1,0 +1,16 @@
+<Feature  Id="C3287B4A-2688-4cc6-C34F-92EF5B787BCE"
+  Title="MOSSWorkflow"
+  Description="Description of the workflow"
+  Version="12.0.0.0"
+  Scope="Site"
+  ReceiverAssembly="Microsoft.Office.Workflow.Feature, Version=12.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c"
+  ReceiverClass="Microsoft.Office.Workflow.Feature.WorkflowFeatureReceiver"
+  xmlns="http://schemas.microsoft.com/sharepoint/">
+  <ElementManifests>
+    <ElementManifest Location="workflow.xml" />
+  </ElementManifests>
+  <Properties>
+    <Property Key="GloballyAvailable" Value="true" />
+    <Property Key="RegisterForms" Value="*.xsn" />
+  </Properties>
+</Feature>

@@ -1,0 +1,56 @@
+var intTimeOut = 5000;
+
+function GetProcessorTime()
+{
+  LoisAndClark.PerformanceService.GetProcessorTime(OnProcessorTimeResponse);
+}
+
+function GetCounter2()
+{
+  LoisAndClark.PerformanceService.GetCounter2(OnCounter2Response);
+}
+
+function GetCounter3()
+{
+  LoisAndClark.PerformanceService.GetCounter3(OnCounter3Response);
+}
+
+function OnProcessorTimeResponse(objResult)
+{
+   var objDisplay = document.getElementById("ProcessorTimeDisplay");
+   objDisplay.innerHTML = "Processor time: " + objResult;
+   setTimeout("GetCounter3()", intTimeOut);
+}
+
+function OnCounter2Response(objResult)
+{
+   var objDisplay = document.getElementById("Counter2Display");
+   objDisplay.innerHTML = "Counter 2: " + objResult;
+   setTimeout("GetProcessorTime()", intTimeOut);
+}
+
+function OnCounter3Response(objResult)
+{
+   var objDisplay = document.getElementById("Counter3Display");
+   objDisplay.innerHTML = "Counter 3: " + objResult;
+   setTimeout("GetProcessorTime()", intTimeOut);
+}
+
+function Init()
+{
+  try
+  {
+    if ( LoisAndClark != null )
+    {
+      GetProcessorTime();
+      GetCounter2();
+      GetCounter3();
+    }
+  }
+  catch (err)
+  {
+    setTimeout("Init()", 1000);
+  }
+}
+
+Init();

@@ -1,0 +1,44 @@
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.ServiceModel;
+using System.Text;
+using System.Security.Principal;
+using Microsoft.SharePoint;
+
+namespace LoisAndClark
+{
+  public class MyWCFService : IMyWCFService
+  {
+    public string DoWork()
+    {
+      // e.g. SHAREPOINT\system as the user name.
+      return GetUserRoles("[site collection URL]", @"[user name] "); 
+    }
+
+    public string GetUserRoles(string strUrl, string strUserName)
+    {
+      try
+      {
+        string strResult = String.Empty;
+        using (SPSite objSite = new SPSite(strUrl))
+        {
+          using (SPWeb objWeb = objSite.OpenWeb())
+          {
+            SPUser objUser = objWeb.Users[strUserName];
+            foreach (SPRole objRole in objUser.Roles)
+            {
+              strResult += objRole.Name + ", ";
+            }
+          }
+        }
+
+        return strResult;
+      }
+      catch (Exception err)
+      {
+        return err.Message;
+      }
+    }
+  }   
+}

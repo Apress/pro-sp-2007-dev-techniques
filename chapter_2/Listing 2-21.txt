@@ -1,0 +1,158 @@
+using System;
+using System.ComponentModel;
+using System.Web.UI;
+using Microsoft.SharePoint.WebPartPages;
+using System.Xml.Serialization;
+using System.Web.UI.WebControls;
+using System.Security;
+using Microsoft.SharePoint.Utilities;
+using Microsoft.SharePoint.WebPartPages.Communication;
+using System.Web.UI.WebControls;
+
+namespace LoisAndClark.Connectable
+{
+  public class ConsumerPart : WebPart
+  {
+    public event CellConsumerInitEventHandler CellConsumerInit;
+
+    private bool _blnConnected = false;
+    private string _strConnectedWebPartTitle = string.Empty;
+    private string _strRegistrationErrorMsg = "An error has occurred trying to register your connection interfaces.";
+    private bool _blnRegistrationErrorOccurred = false;
+    private string _strNotConnectedMsg = "NOT CONNECTED. To use this Web Part, connect it to a client-side Cell Provider Web Part.";
+
+    public ConsumerPart()
+    {
+    }
+
+    public override void EnsureInterfaces()
+    {
+      try
+      {
+        RegisterInterface("MyCellConsumerInterface_WPQ_",
+          InterfaceTypes.ICellConsumer,
+          WebPart.LimitOneConnection,
+          ConnectionRunAt.Client,
+          this,
+          "CellConsumerInterface_WPQ_",
+          "Consume Cell From",
+          "Consume a single value from another Web Part.");
+      }
+      catch (SecurityException err)
+      {
+        blnRegistrationErrorOccurred = true;
+      }
+    }
+
+    public override ConnectionRunAt CanRunAt()
+    {
+      return ConnectionRunAt.Client;
+    }
+
+    public override void PartCommunicationConnect(string strInterfaceName,
+      WebPart objConnectedPart,
+      string strConnectedInterfaceName,
+      ConnectionRunAt enumRunAt)
+    {
+      if (strInterfaceName == "MyCellConsumerInterface_WPQ_")
+      {
+        blnConnected = true;
+        strConnectedWebPartTitle = SPEncode.HtmlEncode(objConnectedPart.Title);
+      }
+    }
+
+    public void CellProviderInit(object objSender, CellProviderInitEventArgs objCellProviderInitEventArgs)
+    {
+    }
+
+    public void CellReady(object sender, CellReadyEventArgs cellReadyEventArgs)
+    {
+    }
+
+    protected override void CreateChildControls()
+    {
+        string strPath = "/AskMe2/ContactService.asmx";
+        ServiceReference objReference = new ServiceReference();
+        objReference.Path = strPath;
+
+        Control ctlManager = Page.Master.FindControl("theScriptManager");
+        ScriptManager objMManager = ctlManager as ScriptManager;
+        objManager.Services.Add(objReference);
+    }
+
+    protected override void RenderWebPart(HtmlTextWriter output)
+    {
+      if (_blnRegistrationErrorOccurred)
+      {
+        output.Write(_strRegistrationErrorMsg);
+        return;
+      }
+
+      if (_blnConnected)
+      {
+        output.Write(ReplaceTokens(
+        "<div id=\"Result\">Result</div>"
+
+        + "<SCRIPT LANGUAGE='JavaScript'>\n"
+        + "<!-- \n"
+        + "function AutoFillRequest_WPQ_(strCompanyName)\n"
+        + "{ \n"				
+        + "LoisAndClark.CompanyContact.ContactService. GetContactInfo(strCompanyName, OnAutoFillResponse_WPQ_)\n"
+        + "}\n"
+
+        + "function OnAutoFillResponse_WPQ_(strResult)\n"
+        + "{\n"				
+        + "var objResult = document.getElementById(\"Result\");\n"
+        + "objResult.innerHTML = strResult;\n"				
+        + "}\n"
+
+        + "var CellConsumerInterface_WPQ_ = new Consumer_WPQ_();\n"
+
+        + "function Consumer_WPQ_()\n"
+        + "{\n"
+        + "this.PartCommunicationInit = myInit;\n"
+        + "this.CellProviderInit = myCellProviderInit;\n"
+        + "this.CellReady = myCellReady;\n"
+        + "this.GetInitEventArgs = myGetInitEventArgs;\n"
+
+        + "function myInit()\n"
+        + "{\n"
+        + "var cellConsumerInitEventArgs = new Object();\n"
+        + "cellConsumerInitEventArgs.FieldName = \"ConsumerCellName\";\n"
+        + "cellConsumerInitEventArgs.FieldDisplayName = \"Consume Cell\";\n"
+
+        + "WPSC.RaiseConnectionEvent(\"MyCellConsumerInterface_WPQ_\", \"CellConsumerInit\", cellConsumerInitEventArgs);\n"
+        + "}\n"
+
+        + "function myCellProviderInit(sender, cellProviderInitEventArgs)\n"
+        + "{\n"
+        + "document.all(\"ConnectedField_WPQ_\").innerText = cellProviderInitEventArgs.FieldDisplayName;\n"
+        + "}\n"
+
+        + "function myCellReady(sender, cellReadyEventArgs)\n"
+        + "{\n"
+        + "if(cellReadyEventArgs.Cell != null)\n"
+        + "{\n"
+        + "AutoFillRequest_WPQ_(cellReadyEventArgs.Cell);\n"
+        + "}\n"
+        + "}\n"
+
+        + "function myGetInitEventArgs()\n"
+        + "{\n"
+        + "var cellConsumerInitEventArgs = new Object();\n"
+        + "cellConsumerInitEventArgs.FieldName = \"Consume Cell\";\n"
+        + "cellConsumerInitEventArgs.FieldDisplayName = \"Consume Cell\";\n"
+
+        + "return(cellConsumerInitEventArgs);\n"
+        + "}\n"
+        + "}\n"
+        + "//-->\n"
+        + "</SCRIPT>\n"));
+      }
+      else
+      {
+        output.Write(_strNotConnectedMsg);
+      }
+    }
+  }
+}

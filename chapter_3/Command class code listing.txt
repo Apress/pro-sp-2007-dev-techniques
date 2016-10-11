@@ -1,0 +1,222 @@
+using System;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using d = System.Data;
+using System.Diagnostics;
+using System.Net;
+using System.Text;
+using System.Xml;
+using Microsoft.ReportingServices.DataProcessing;
+
+namespace LoisAndClark.SharePointListExtension
+{
+    public class Command : IDbCommand
+    {
+        private static XmlNamespaceManager _objNameSpaceManager;
+        private string _strText;
+        private Connection _objConn;
+        private CommandType _objCmdType = CommandType.Text;
+        DataParameterCollection _objDataParameters = new DataParameterCollection();
+
+        public Command()
+        { }
+
+        public Command(Connection objConn)
+        {
+            _objConn = objConn;
+        }
+
+        public Command(string strText)
+        {
+            _strText = strText;
+        }
+
+        public Command(string strText, Connection objConn)
+        {
+            _strText = strText;
+            _objConn = objConn;
+        }
+
+        //idbcommand
+        public string CommandText
+        {
+            get { return _strText; }
+            set { _strText = value; }
+        }
+
+        //idbcommand
+        public int CommandTimeout
+        {
+            get { return 60000; }
+            set { }
+        }
+
+        //idbcommand
+        public CommandType CommandType
+        {
+            get { return _objCmdType; }
+            set
+            {
+                if (value != CommandType.Text)
+                {
+                    throw new NotSupportedException();
+                }
+                _objCmdType = value;
+            }
+        }
+
+        //idbcommand
+        IDataParameterCollection IDbCommand.Parameters
+        {
+            get { return _objDataParameters; }
+        }
+
+        //idbcommand
+        public IDbTransaction Transaction
+        {
+
+            get { return null; }
+            set { }
+        }
+
+        //idbcommand
+        public void Cancel()
+        {
+            throw new NotSupportedException();
+        }
+
+        //idbcommand
+        public IDataParameter CreateParameter()
+        {
+            return null;
+        }
+
+        //idbcommand
+        public IDataReader ExecuteReader()
+        {
+            return ExecuteReader(CommandBehavior.SingleResult);
+        }
+
+        public IDataReader ExecuteReader(CommandBehavior behavior)
+        {
+            d.DataTable objDataTable = GetDataTableFromWSS((behavior == CommandBehavior.SchemaOnly));
+            return new DataReader(this._objConn, objDataTable);
+            //return new DataReader(this._objConn, objDataTable);
+        }
+
+        public void Dispose()
+        { }
+
+        private d.DataTable GetDataTableFromWSS(bool blnSchema)
+        {
+            WssLists.Lists objLists = new WssLists.Lists();
+            objLists.Url = _objConn.strDataSourcePath + "_vti_bin/Lists.asmx";
+            objLists.Credentials = GetCredential(_objConn);
+            objLists.PreAuthenticate = true;
+            objLists.Timeout = this.CommandTimeout;
+
+            XmlNode ListCollectionNode = objLists.GetListCollection();
+            XmlElement xmlElem = (XmlElement)ListCollectionNode.SelectSingleNode(String.Format("wss:List[@Title='{0}']", this.CommandText), NameSpaceManager);
+            if (xmlElem == null)
+            {
+                throw new ArgumentException(String.Format("List {0} does not exist in site {1}", this.CommandText, _objConn.strDataSourcePath));
+            }
+
+            string strTechListName = xmlElem.GetAttribute("Name");
+            XmlNode xmlNode = objLists.GetList(strTechListName);
+
+            StringBuilder objStringBuilder = new StringBuilder();
+            HybridDictionary objDictionary = new HybridDictionary();
+            d.DataTable objResult = new d.DataTable("list");
+            foreach (XmlElement xmlField in xmlNode.SelectNodes("wss:Fields/wss:Field", NameSpaceManager))
+            {
+                string strName = xmlField.GetAttribute("Name");
+                string strDisplayName = xmlField.GetAttribute("DisplayName");
+
+                if (objResult.Columns.Contains(strDisplayName))
+                {
+                    strDisplayName = strDisplayName + " (" + strName + ")";
+                }
+                objResult.Columns.Add(strDisplayName, TypeFromField(xmlField));
+                objStringBuilder.AppendFormat("<FieldRef Name=\"{0}\"/>", strName);
+                objDictionary.Add(strDisplayName, strName);
+            }
+
+            if (blnSchema)
+            {
+                return objResult;
+            }
+
+            XmlElement fields = xmlNode.OwnerDocument.CreateElement("ViewFields");
+            fields.InnerXml = objStringBuilder.ToString();
+
+            XmlNode ItemsNode = objLists.GetListItems(strTechListName, "", null, fields, "1000000", null, null);
+            System.Text.RegularExpressions.Regex CheckLookup = new System.Text.RegularExpressions.Regex("^\\d+;#");
+
+            foreach (XmlElement Item in ItemsNode.SelectNodes("rs:data/z:row", NameSpaceManager))
+            {
+                d.DataRow newRow = objResult.NewRow();
+                foreach (d.DataColumn col in objResult.Columns)
+                {
+                    if (Item.HasAttribute("ows_" + (string)objDictionary[col.ColumnName]))
+                    {
+                        string val = Item.GetAttribute("ows_" + (string)objDictionary[col.ColumnName]);
+                        if (CheckLookup.IsMatch((string)val))
+                        {
+                            string valString = val as String;
+                            val = valString.Substring(valString.IndexOf("#") + 1);
+                        }
+                        newRow[col] = val;
+                    }
+                }
+                objResult.Rows.Add(newRow);
+            }
+            return objResult;
+        }
+
+        private Type TypeFromField(XmlElement xmlElem)
+        {
+            switch (xmlElem.GetAttribute("Type"))
+            {
+                case "DateTime":
+                    return typeof(DateTime);
+                case "Integer":
+                    return typeof(int);
+                case "Number":
+                    return typeof(float);
+                default:
+                    return typeof(string);
+            }
+        }
+
+        private static XmlNamespaceManager NameSpaceManager
+        {
+            get
+            {
+                if (_objNameSpaceManager == null)
+                {
+                    _objNameSpaceManager = new XmlNamespaceManager(new NameTable());
+                    _objNameSpaceManager.AddNamespace("wss", "http://schemas.microsoft.com/sharepoint/soap/");
+                    _objNameSpaceManager.AddNamespace("s", "uuid:BDC6E3F0-6DA3-11d1-A2A3-00AA00C14882");
+                    _objNameSpaceManager.AddNamespace("dt", "uuid:C2F41010-65B3-11d1-A29F-00AA00C14882");
+                    _objNameSpaceManager.AddNamespace("rs", "urn:schemas-microsoft-com:rowset");
+                    _objNameSpaceManager.AddNamespace("z", "#RowsetSchema");
+                }
+                return _objNameSpaceManager;
+            }
+        }
+
+        private ICredentials GetCredential(Connection objConnection)
+        {
+            if (objConnection.IntegratedSecurity)
+            {
+                return CredentialCache.DefaultCredentials;
+            }
+            else
+            {
+                return new NetworkCredential(objConnection.UserName, objConnection.Password);
+            }
+        }
+    }
+}
+

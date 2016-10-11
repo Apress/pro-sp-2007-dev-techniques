@@ -1,0 +1,33 @@
+  <Recipe Name="BindingRecipe">
+    <Types>
+      <TypeAlias Name="RefCreator" Type="Microsoft.Practices.RecipeFramework.Library.Actions.CreateUnboundReferenceAction, Microsoft.Practices.RecipeFramework.Library"/>
+    </Types>
+    <Caption>Creates unbound references to the guidance package</Caption>
+    <Actions>
+      <Action Name="CreateSampleUnboundItemTemplateRef" Type="RefCreator" AssetName="Items\WebPartTemplate.vstemplate" ReferenceType="WebPartLibrary.References.ClassLibraryReference, WebPartLibrary" />
+    </Actions>
+  </Recipe>
+  <Recipe Name="CreateSolution">
+    <Caption>Collects information for the new sample solution.</Caption>
+    <Arguments>
+      <Argument Name="ProjectName">
+        <Converter Type="Microsoft.Practices.RecipeFramework.Library.Converters.NamespaceStringConverter, Microsoft.Practices.RecipeFramework.Library"/>
+      </Argument>
+      <Argument Name="ClassName">
+        <Converter Type="Microsoft.Practices.RecipeFramework.Library.Converters.NamespaceStringConverter, Microsoft.Practices.RecipeFramework.Library"/>
+      </Argument>
+    </Arguments>
+    <GatheringServiceData>
+      <Wizard xmlns="http://schemas.microsoft.com/pag/gax-wizards" SchemaVersion="1.0">
+        <Pages>
+          <Page>
+            <Title>Initial values for the new solution</Title>
+            <Fields>
+              <Field Label="Project Name" ValueName="ProjectName" />
+              <Field Label="Class Name" ValueName="ClassName" />
+            </Fields>
+          </Page>
+        </Pages>
+      </Wizard>
+    </GatheringServiceData>
+  </Recipe>

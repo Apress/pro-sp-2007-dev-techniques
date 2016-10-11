@@ -1,0 +1,36 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using Microsoft.SharePoint.Administration;
+using Microsoft.SharePoint.Utilities;
+using System.Net;
+using System.Net.Mail;
+
+namespace LoisAndClark.AspNetExample
+{
+  [Guid("288802c4-4dfe-45b6-bb28-49dda89ec225")]
+  public class NormalPart : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    protected override void CreateChildControls()
+    {
+      string strResource = "LoisAndClark.WebResources.gfx.favicon.gif";
+      string strUrl = Page.ClientScript.GetWebResourceUrl(typeof(LoisAndClark.WebResources.PlaceHolder), strResource);
+
+      BulletedList objBullist = new BulletedList();
+      objBullist.BulletStyle = BulletStyle.CustomImage;
+      objBullist.BulletImageUrl = strUrl;
+      objBullist.Items.Add("One");
+      objBullist.Items.Add("Two");
+      objBullist.Items.Add("Three");
+      objBullist.Items.Add("Four");
+
+      Controls.Add(objBullist);
+    }
+  }
+}

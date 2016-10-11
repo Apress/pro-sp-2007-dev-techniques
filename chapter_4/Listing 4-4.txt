@@ -1,0 +1,26 @@
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/">
+  <Workflow
+    Name="MOSSWorkflow"
+    Description="Description of the workflow"
+    Id="D250636F-0A26-4019-8425-A5232D592C10"
+    CodeBesideClass="MOSSWorkflow.Workflow1" 
+    CodeBesideAssembly="MOSSWorkflow, Version=1.0.0.0, Culture=neutral, PublicKeyToken=bebe1ea49fdec076"
+    TaskListContentTypeId="0x01080100C9C9515DE4E24001905074F980F93160"
+    AssociationUrl="_layouts/CstWrkflIP.aspx"
+    InstantiationUrl="_layouts/IniWrkflIP.aspx"
+    ModificationUrl="_layouts/ModWrkflIP.aspx"
+    StatusUrl="_layouts/WrkStat.aspx">
+    <Categories/>
+    <MetaData>
+      <Association_FormURN>
+        urn:schemas-microsoft-com:office:infopath:InitiationForm:-myXSD-2007-05-25T12-13-02
+      </Association_FormURN>
+      <Instantiation_FormURN>
+        urn:schemas-microsoft-com:office:infopath:InitiationForm:-myXSD-2007-05-25T12-13-02
+      </Instantiation_FormURN>
+      <Task0_FormURN>
+        urn:schemas-microsoft-com:office:infopath:EditTaskForm:-myXSD-2007-05-25T17-06-24
+      </Task0_FormURN>
+    </MetaData>
+  </Workflow>
+</Elements>

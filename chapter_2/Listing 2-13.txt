@@ -1,0 +1,56 @@
+using System; 
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using System.Web.UI.WebControls;
+
+namespace AjaxClient
+{
+  [Guid("be6ec8e3-2706-4f52-bdf9-f6eb18fc65c0")]
+  public class AjaxClient : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public AjaxClient()
+    {
+      PreRender += new EventHandler(PerformanceCounterWebPart_PreRender);
+    }
+
+    void PerformanceCounterWebPart_PreRender(object sender, EventArgs e)
+    {
+      if (!Page.ClientScript.IsClientScriptBlockRegistered("Ajax"))
+      {
+        Page.ClientScript.RegisterClientScriptInclude("Ajax", "/wpresources/ajax.js");
+      }
+    }
+
+    protected override void CreateChildControls()
+    {
+      try
+      {
+        string strPath = "/AskMe2/PerformanceService.asmx";
+        ServiceReference objReference = new ServiceReference();
+        objReference.Path = strPath;
+
+        ScriptManager objManager = new ScriptManager();
+        objManager.Services.Add(objReference);
+        Controls.Add(objManager);
+
+        string strDisplay = "<div id=\"ProcessorTimeDisplay\"> Display 1</div> \n";
+        Controls.Add(new LiteralControl(strDisplay));
+
+        strDisplay = "<div id=\"Counter2Display\">Display 2</div> \n";
+        Controls.Add(new LiteralControl(strDisplay));
+
+        strDisplay = "<div id=\"Counter3Display\">Display 3</div> \n";
+        Controls.Add(new LiteralControl(strDisplay));
+      }
+      catch (Exception err)
+      {
+        Controls.Add(new LiteralControl(err.Message));
+      }
+    }
+  }
+}

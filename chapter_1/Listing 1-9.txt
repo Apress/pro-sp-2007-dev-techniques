@@ -1,0 +1,54 @@
+using System;
+using System.Collections;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using Microsoft.SharePoint.Administration;
+using Microsoft.SharePoint.Utilities;
+
+using System.Net;
+using System.Net.Mail;
+
+
+namespace LoisAndClark.AspNetExample
+{
+  [Guid("288802c4-4dfe-45b6-bb28-49dda89ec225")]
+  public class NormalPart : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    protected override void RenderContents(HtmlTextWriter writer)
+    {
+      writer.Write("Normalvalue: " + NormalValue);
+    }
+
+    public override EditorPartCollection CreateEditorParts()
+    {
+      NormalEditorPart objEditor = new NormalEditorPart();
+      objEditor.ID = ID + "normalEditor1";
+      objEditor.Title = "Normal Editor title";
+      objEditor.ToolTip = "Normal Editor tooltip";
+      objEditor.TabIndex = 100;
+      objEditor.GroupingText = "Normal editor grouping text";
+
+      ArrayList objEditorParts = new ArrayList();
+      objEditorParts.Add(objEditor);
+
+      EditorPartCollection objEditorPartsCollection = new EditorPartCollection(objEditorParts);
+
+      return objEditorPartsCollection;
+    }
+
+    private string _strNormalValue = String.Empty;
+    [Personalizable(PersonalizationScope.Shared), WebBrowsable(false), WebDisplayName("Normal value"), WebDescription("Normal value description")]
+    public string NormalValue
+    {
+      get { return _strNormalValue; }
+      set { _strNormalValue = value; }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using System.Collections;
+using System.Data;
+
+namespace Connections
+{
+  [Guid("50476016-46b0-4746-bcb8-ae0e70682675")]
+  public class TableConsumer : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public TableConsumer()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void Render(HtmlTextWriter writer)
+    {
+      if (Data != null)
+      {
+        foreach (DataRow objRow in Data)
+        {
+          writer.Write("column " + objRow.Table.Columns[0] + ": " + objRow[0]);
+          writer.WriteBreak();
+
+          writer.Write("column " + objRow.Table.Columns[1] + ": " + objRow[1]);
+          writer.WriteBreak();
+        }
+     }
+     else
+     {
+        writer.Write("Not connected");
+     }
+   }
+
+    [ConnectionConsumer("my table consumer")]
+    public void GetProvider(IWebPartTable objProvider)
+    {
+      TableCallback objCallback = new TableCallback(GetTable);
+      objProvider.GetTableData(objCallback);
+    }
+
+    public void GetTable(ICollection objTable)
+    {
+       if (objTable != null) Data = (ICollection) objTable;			
+    }
+
+    private ICollection _collData;
+    public ICollection Data
+    {
+      get { return _collData; }
+      set { _collData = value; }
+    }
+  }
+}

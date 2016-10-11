@@ -1,0 +1,66 @@
+using System; using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using System.Web.UI.WebControls;
+
+namespace AjaxClient
+{
+  [Guid("be6ec8e3-2706-4f52-bdf9-f6eb18fc65c0")]
+  public class AjaxClient : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public AjaxClient()
+    {
+      PreRender += new EventHandler(PerformanceCounterWebPart_PreRender);
+    }
+
+    void PerformanceCounterWebPart_PreRender(object sender, EventArgs e)
+    {
+      if (!Page.ClientScript.IsClientScriptBlockRegistered("JSON"))
+      {
+        Page.ClientScript.RegisterClientScriptInclude("JSON", "/wpresources/json.js");
+      }
+
+      if (!Page.ClientScript.IsClientScriptBlockRegistered("Ajax"))
+      {
+        Page.ClientScript.RegisterClientScriptInclude("Ajax", "/wpresources/ajax.js");
+      }
+    }
+
+    protected override void CreateChildControls()
+    {
+      try
+      {
+        string strPath = "/AskMe2/ContactService.asmx";
+        ServiceReference objReference = new ServiceReference();
+        objReference.Path = strPath;
+
+        Control ctlManager = Page.Master.FindControl("theScriptManager");
+        ScriptManager objManager = ctlManager as ScriptManager;			
+        objManager.Services.Add(objReference);
+				
+        string strCompanyName = "Name: <input id=\"CompanyName\" type=\"text\" />";
+        Controls.Add(new LiteralControl(strCompanyName));
+
+        string strAutoFill = "<input id=\"AutoFill\" type=\"button\" value=\"AutoFill...\" onclick=\"AutoFillRequest();\" /><br/>";
+        Controls.Add(new LiteralControl(strAutoFill));
+
+        string strContactPerson = "Contact: <input id=\"ContactPerson\" type=\"text\" /><br/>";
+        Controls.Add(new LiteralControl(strContactPerson));
+
+        string strCity = "City: <input id=\"City\" type=\"text\" /><br/>";
+        Controls.Add(new LiteralControl(strCity));
+
+        string strCountry = "Country: <input id=\"Country\" type=\"text\" /><br/>";
+        Controls.Add(new LiteralControl(strCountry));
+      }
+      catch (Exception err)
+      {
+        Controls.Add(new LiteralControl(err.Message));
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace LoisAndClark.PeoplePickerExample
+{
+  [Guid("93bc9836-7deb-4ce6-bc6d-91312563603b")]
+  public class PeoplePickerExample : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    private PeopleEditor objEditor;
+    private Label lblAccount;
+    private Button btnPostMe;
+
+    public PeoplePickerExample()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void CreateChildControls()
+    {
+      lblAccount = new Label();
+      lblAccount.ID = "lblAccount";
+      Controls.Add(lblAccount);
+
+      objEditor = new PeopleEditor();
+      objEditor.AutoPostBack = true;
+      objEditor.PlaceButtonsUnderEntityEditor = true;
+      objEditor.ID = "pplEditor";
+      objEditor.AllowEmpty = false;
+      objEditor.SelectionSet = "User,DL,SecGroup,SPGroup";
+      objEditor.MultiSelect = false;
+      Controls.Add(objEditor);
+
+      btnPostMe = new Button();
+      btnPostMe.Text = " OK ";
+      btnPostMe.Click += new EventHandler(btnPostMe_Click);
+      Controls.Add(btnPostMe);
+    }
+
+    private string GetAccountName()
+    {
+      string strAccountName = String.Empty;
+
+      for (int i = 0; i < objEditor.ResolvedEntities.Count; i++)
+      {
+        PickerEntity objEntity = (PickerEntity) objEditor.ResolvedEntities[i];
+        SPUserInfo objInfo = new SPUserInfo();
+        objInfo.LoginName = objEntity.Key;
+        strAccountName = objInfo.LoginName;
+      }
+
+      return strAccountName;
+    }
+
+    private void btnPostMe_Click(object sender, EventArgs eventArgs)
+    {
+      string strAccountName = GetAccountName();
+      lblAccount.Text = "account name: " + strAccountName;
+    }
+  }
+}

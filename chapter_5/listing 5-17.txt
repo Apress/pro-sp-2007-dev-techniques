@@ -1,0 +1,104 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using System.ComponentModel;
+
+namespace Connections
+{
+  [Guid("bf4ec57c-e919-4d5d-903e-10f5373ba406")]
+  public class ParametersProvider : System.Web.UI.WebControls.WebParts.WebPart, IWebPartParameters
+  {
+    public ParametersProvider()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void Render(HtmlTextWriter writer)
+    {			
+      writer.Write("Provider ParametersProvider");
+    }
+
+    [ConnectionProvider("my parameters provider")]
+    public IWebPartParameters GetParametersProvider()
+    {
+      return this;
+    }
+
+    public void GetParametersData(ParametersCallback callback)
+    {
+      StateBag objParameters = new StateBag();			
+
+      foreach (PropertyDescriptor objProperty in Parameters)
+      {
+        switch (objProperty.Name)
+        {
+          case "ColumnA":
+            objParameters.Add("ColumnA", ColumnA);
+            break;
+          case "ColumnB":
+            objParameters.Add("ColumnB", ColumnB);
+            break;
+          default:
+            throw new Exception("ParametersProvider: Unknown parameter name");
+        }				
+      }
+
+      callback.Invoke(objParameters);
+    }
+
+    public System.ComponentModel.PropertyDescriptorCollection Schema
+    {
+      get 
+      {
+        PropertyDescriptorCollection objProperties;				
+        PropertyDescriptor[] arrProperties = new PropertyDescriptor[Parameters.Count];
+        TypeDescriptor.GetProperties(this);
+
+        objProperties = TypeDescriptor.GetProperties(this);
+        int intParameterCount = 0;
+        foreach (PropertyDescriptor objProperty in Parameters)
+        {
+          if (Parameters[objProperty.Name] != null )
+          {
+            intParameterCount++;
+            arrProperties[intParameterCount] = objProperty;
+          }
+        }
+
+        objProperties = new PropertyDescriptorCollection(arrProperties);
+        return objProperties;
+      }
+    }
+		
+    public void SetConsumerSchema(System.ComponentModel.PropertyDescriptorCollection schema)
+    {
+      Parameters = schema;			
+    }
+
+    private PropertyDescriptorCollection _objParameters;
+    public PropertyDescriptorCollection Parameters
+    {
+      get { return _objParameters; }
+      set { _objParameters = value; }
+    }
+
+    private string _strColumnA = "ParametersProvider column A value";
+    public string ColumnA
+    {
+      get { return _strColumnA; }
+      set { _strColumnA = value; }
+    }
+
+    private string _strColumnB = "ParametersProvider column B value";
+    public string ColumnB
+    {
+      get { return _strColumnB; }
+      set { _strColumnB = value; }
+    }		
+  }
+}

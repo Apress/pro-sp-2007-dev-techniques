@@ -1,0 +1,12 @@
+namespace LoisAndClark.WPLibrary
+{
+  public class Content
+  {
+    internal Content() { }
+
+    public string MyContent<MyType>(MyType arg)
+    {
+      return arg.ToString();
+    }
+  }
+}

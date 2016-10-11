@@ -1,0 +1,130 @@
+using System;
+using System.ComponentModel;
+using System.Web.UI;
+using Microsoft.SharePoint.WebPartPages;
+using System.Xml.Serialization;
+using System.Web.UI.WebControls;
+using System.Security;
+using Microsoft.SharePoint.Utilities;
+using Microsoft.SharePoint.WebPartPages.Communication;
+
+namespace LoisAndClark.Connectable
+{
+  public class ProviderPart : WebPart, ICellProvider
+  {
+    public event CellProviderInitEventHandler CellProviderInit;
+    public event CellReadyEventHandler CellReady;
+
+    private bool _blnConnected = false;
+    private string _strConnectedWebPartTitle = string.Empty;
+    private string _strRegistrationErrorMsg = "An error has occurred trying to register your connection interfaces.";
+    private bool _blnRegistrationErrorOccurred = false;
+    private string _strNotConnectedMsg = "NOT CONNECTED. To use this Web Part, connect it to a client-side Cell Consumer Web Part.";
+
+    public override void EnsureInterfaces()
+    {
+      try
+      {
+        RegisterInterface("MyCellProviderInterface_WPQ_",
+          InterfaceTypes.ICellProvider,
+          WebPart.UnlimitedConnections,
+          ConnectionRunAt.Client,
+          this,
+          "CellProviderInterface_WPQ_",
+          "Provide Cell To",
+          "Provides a single value to a cell consumer Web Part.");
+      }
+      catch (SecurityException err)
+      {
+        _blnRegistrationErrorOccurred = true;
+      }
+    }
+
+    public override ConnectionRunAt CanRunAt()
+    {
+      return ConnectionRunAt.Client;
+    }
+
+    public override void PartCommunicationConnect(
+      string strInterfaceName,
+      WebPart objConnectedPart,
+      string strConnectedInterfaceName,
+      ConnectionRunAt enumRunAt)
+    {
+      if (strInterfaceName == "MyCellProviderInterface_WPQ_")
+      {
+        blnConnected = true;
+        _strConnectedWebPartTitle = SPEncode.HtmlEncode(objConnectedPart.Title);
+      }
+    }
+
+    public void CellConsumerInit(object objSender, CellConsumerInitEventArgs objCellConsumerInitEventArgs)
+    {
+    }
+
+    protected override void RenderWebPart(HtmlTextWriter output)
+    {
+      if (_blnRegistrationErrorOccurred)
+      {
+        output.Write(_strRegistrationErrorMsg);
+        return;
+      }
+
+      if (_blnConnected)
+      {
+        output.Write(ReplaceTokens("<P>\n"
+          + "   Company name: \n"
+          + "   <INPUT TYPE=\"text\" ID=\"CompanyName_WPQ_\"/>\n"
+          + "   <INPUT TYPE=\"button\" ID=\"CellButton_WPQ_\" onclick=\"CellButtonClick_WPQ_()\" VALUE=\"AutoFill\"/><br/>\n"
+          + "</P>\n"
+
+          + "<SCRIPT LANGUAGE=\"JavaScript\">\n"
+          + "<!-- \n"
+          + "   var CellProviderInterface_WPQ_ = new Provider_WPQ_();\n"
+
+          + "   function Provider_WPQ_()\n"
+          + "   {\n"
+          + "      this.PartCommunicationInit = myInit;\n"
+          + "      this.PartCommunicationMain = myMain;\n"
+          + "      this.CellConsumerInit = myCellConsumerInit;\n"
+
+          + "      function myInit()\n"
+          + "      {\n"
+          + "         var cellProviderInitEventArgs = new Object();\n"
+          + "         cellProviderInitEventArgs.FieldName = \"ProvideCell\";\n"
+          + "         cellProviderInitEventArgs.FieldDisplayName = \"Provide Cell\";\n"
+
+          + "         WPSC.RaiseConnectionEvent(\"MyCellProviderInterface_WPQ_\", \"CellProviderInit\", cellProviderInitEventArgs);\n"
+          + "      }\n"
+
+          + "      function myMain()\n"
+          + "      {\n"
+          + "         var cellReadyEventArgs = new Object();\n"
+          + "         cellReadyEventArgs.Cell = null;\n"
+
+          + "         WPSC.RaiseConnectionEvent(\"MyCellProviderInterface_WPQ_\", \"CellReady\", cellReadyEventArgs);\n"
+          + "      }\n"
+
+          + "      function myCellConsumerInit(sender, cellConsumerInitEventArgs)\n"
+          + "      {\n"
+          + "         document.all(\"ConnectedField_WPQ_\").innerText = cellConsumerInitEventArgs.FieldDisplayName;\n"
+          + "      }\n"
+          + "   }\n"
+
+          + "   function CellButtonClick_WPQ_()\n"
+          + "   {\n"
+          + "      var cellReadyEventArgs = new Object();\n"
+          + "      cellReadyEventArgs.Cell = document.all(\"CompanyName_WPQ_\").value;\n"
+
+          + "     WPSC.RaiseConnectionEvent(\"MyCellProviderInterface_WPQ_\", \"CellReady\", cellReadyEventArgs);\n"
+          + "   }\n"
+          + "//-->\n"
+          + "</SCRIPT>\n"));
+      }
+      else
+      {
+        output.Write(_strNotConnectedMsg);
+      }
+    }
+  }
+}

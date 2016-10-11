@@ -1,0 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Connections
+{
+    public interface IMyFirstInterface
+    {
+        string Name { get; set;}
+    }
+}

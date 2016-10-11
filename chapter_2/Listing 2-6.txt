@@ -1,0 +1,33 @@
+function MyRemoteCall()
+{
+  objRequest = new ActiveXObject("Msxml2.XMLHTTP");
+  objRequest.open("POST", "/askme/mediator.asmx/Hi", true);
+  objRequest.onreadystatechange = OnResponse;
+  objRequest.send(null);
+  setTimeout("Abort()", 5000);
+}
+
+function Abort()
+{
+  objRequest.abort();
+  alert("abort");
+}
+
+function OnResponse()
+{
+  if ( _objRequest.readyState != 4 )
+  {
+    //alert('not ready yet');
+    return;
+  }
+
+  if ( _objRequest.status != 200 )
+  {
+    alert("unexpected status!");
+  }
+
+  var strResponse = _objRequest.responseText;
+  alert(strResponse);
+}
+
+MyRemoteCall();

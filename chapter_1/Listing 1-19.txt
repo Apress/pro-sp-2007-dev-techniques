@@ -1,0 +1,59 @@
+  <Recipe Name="NewItemClass" Recurrent="true">
+    <xi:include href="TypeAlias.xml" xmlns:xi="http://www.w3.org/2001/XInclude" />
+    <Caption>Collects information from the user</Caption>
+    <Description></Description>
+    <HostData>
+      <Icon ID="1429"/>
+      <CommandBar Name="Project" />
+    </HostData>
+    <Arguments>
+      <Argument Name="CurrentProject" Type="EnvDTE.Project, EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <ValueProvider Type="Microsoft.Practices.RecipeFramework.Library.ValueProviders.FirstSelectedProject, Microsoft.Practices.RecipeFramework.Library" />
+      </Argument>
+      <Argument Name="Namespace">
+        <Converter Type="Microsoft.Practices.RecipeFramework. Library.Converters.NamespaceStringConverter, Microsoft.Practices.RecipeFramework.Library"/>
+        <ValueProvider Type="Evaluator" Expression="$(CurrentProject.Properties.Item('DefaultNamespace').Value)" />
+      </Argument>
+      <Argument Name="AssemblyName">
+        <Converter Type="Microsoft.Practices.RecipeFramework.Library.Converters.NamespaceStringConverter, Microsoft.Practices.RecipeFramework.Library" />
+        <ValueProvider Type="Evaluator" Expression="$(CurrentProject.Name)" />
+      </Argument>
+      <Argument Name="ClassName">
+        <Converter Type="Microsoft.Practices.RecipeFramework.Library.Converters.NamespaceStringConverter, Microsoft.Practices.RecipeFramework.Library"/>
+      </Argument>
+      <Argument Name="TitleWebPart">
+        <Converter Type="Microsoft.Practices.RecipeFramework.Library.Converters.NamespaceStringConverter, Microsoft.Practices.RecipeFramework.Library"/>
+      </Argument>
+      <Argument Name="DescriptionWebPart">
+        <Converter Type="Microsoft.Practices.RecipeFramework.Library.Converters.NamespaceStringConverter, Microsoft.Practices.RecipeFramework.Library"/>
+      </Argument>
+    </Arguments>
+    <GatheringServiceData>
+      <Wizard xmlns="http://schemas.microsoft.com/pag/gax-wizards" SchemaVersion="1.0">
+        <Pages>
+          <Page>
+            <Title>
+              Collect information using editors, converters and value providers.
+            </Title>
+            <Fields>
+              <Field ValueName="AssemblyName" Label="Assembly Name">
+                <Tooltip></Tooltip>
+              </Field>
+              <Field ValueName="Namespace" Label="Namespace">
+                <Tooltip></Tooltip>
+              </Field>
+              <Field ValueName="ClassName" Label="Classname Web Part">
+                <Tooltip></Tooltip>
+              </Field>
+              <Field ValueName="TitleWebPart" Label="Title Web Part">
+                <Tooltip></Tooltip>
+              </Field>
+              <Field ValueName="DescriptionWebPart" Label="Description Web Part">
+                <Tooltip></Tooltip>
+              </Field>
+            </Fields>
+          </Page>
+        </Pages>
+      </Wizard>
+    </GatheringServiceData>
+  </Recipe>

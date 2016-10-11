@@ -1,0 +1,23 @@
+using System;
+using System.ComponentModel;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.Utilities;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace WebPartLibrarySolution1
+{
+  [DefaultProperty("Text"),
+  ToolboxData("<{0}:Test runat=server></{0}:Test>"),
+  XmlRoot(Namespace = "WebPartLibrarySolution1")]
+  public class Test : WebPart
+  {
+    protected override void RenderWebPart(HtmlTextWriter output)
+    {
+      string htmlcode = "Hello World";
+      output.Write(SPEncode.HtmlEncode(htmlcode));
+    }
+  }
+}

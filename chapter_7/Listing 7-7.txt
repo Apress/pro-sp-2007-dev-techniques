@@ -1,0 +1,57 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using System.Security.Principal;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using Microsoft.SharePoint.Navigation;
+
+namespace LoisAndClark.ImpersonationAndElevation
+{
+ [Guid("47500629-54d5-4ac4-ac44-097b4ce2e3eb")]
+  public class SuperPart : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public SuperPart()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void RenderContents(HtmlTextWriter writer)
+    {
+      string strValue = String.Empty;
+
+      try
+      {
+        SPWeb objWeb = SPControl.GetContextWeb(Context);
+
+        SPSecurity.RunWithElevatedPrivileges(delegate()
+        {
+          using (SPSite objElevatedSite = new SPSite(objWeb.Site.ID))
+          {
+            using (SPWeb objElevatedWeb = objElevatedSite.OpenWeb())
+            {
+              // Allow unsafe updates because you can’t save changes
+              // during HTTP GET requests.
+              objElevatedWeb.AllowUnsafeUpdates = true;
+              SPNavigationNode node = new SPNavigationNode("My Custom Node", "http://node.url", true);
+
+              objElevatedWeb.Navigation.QuickLaunch.AddAsFirst(node);
+              objElevatedWeb.Update();
+            }
+          }
+        }
+        );
+
+      }
+      catch (Exception err)
+      {
+        strValue = err.Message;
+      }
+
+      writer.Write(strValue);
+    }
+  }
+}  

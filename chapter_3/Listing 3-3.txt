@@ -1,0 +1,33 @@
+using System;
+using System.Collections;
+using System.Globalization;
+using Microsoft.ReportingServices.DataProcessing;
+
+namespace LoisandClark.SharePointListExtension
+{
+  public class DataParameterCollection : ArrayList, IDataParameterCollection
+  {
+    public object this[string index]
+    {
+      get { return this[IndexOf(index)]; }
+      set { this[IndexOf(index)] = value; }
+    }
+
+    public override int Add(object value)
+    {
+      return Add((IDataParameter)value);
+    }
+
+    int IDataParameterCollection.Add(IDataParameter parameter)
+    {
+      if (parameter.ParameterName != null)
+      {
+        return base.Add(parameter);
+      }
+      else
+      {
+        throw new ArgumentException("parameter must be named");
+      }
+    }
+  }
+}

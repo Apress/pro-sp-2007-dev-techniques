@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Solution xmlns="http://schemas.microsoft.com/sharepoint/" SolutionId="312ae869-37dc-4a74-9ecc-359fb3c1461d">
+  <Assemblies>
+    <Assembly DeploymentTarget="WebApplication" Location="WPLibrary.dll">
+      <SafeControls>
+        <SafeControl Assembly="WPLibrary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9f4da00116c38ec5" Namespace="LoisAndClark.MyWebPartLibrary" TypeName="*" Safe="True" />
+      </SafeControls>
+    </Assembly>
+  </Assemblies>
+</Solution>

@@ -1,0 +1,53 @@
+using System; using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using System.Web.UI.WebControls;
+using AjaxControlToolkit;
+
+namespace AjaxClient
+{
+  [Guid("be6ec8e3-2706-4f52-bdf9-f6eb18fc65c0")]
+  public class AjaxClient : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public AjaxClient()
+    {
+    }
+
+    protected override void CreateChildControls()
+    {
+      try
+      {
+        string strPath = "/AskMe2/DocLibExtenderService.asmx";
+        ServiceReference objReference = new ServiceReference();
+        objReference.Path = strPath;
+
+        Control ctlManager = Page.Master.FindControl("theScriptManager");
+        ScriptManager objManager = ctlManager as ScriptManager;			
+        objManager.Services.Add(objReference);
+
+        TextBox txtList = new TextBox();
+        txtList.ID = "TextBox1";
+        Controls.Add(txtList);
+
+        AutoCompleteExtender objAuto = new AutoCompleteExtender();
+        objAuto.ID = "autoComplete1";
+        objAuto.TargetControlID = "TextBox1";
+        objAuto.ServicePath = "/AskMe2/DocLibExtenderService.asmx";
+        objAuto.ServiceMethod = "GetLists";
+        objAuto.MinimumPrefixLength = 1;
+        objAuto.CompletionInterval = 1000;
+        objAuto.EnableCaching = true;
+        objAuto.CompletionSetCount = 12;
+        Controls.Add(objAuto);
+      }
+      catch (Exception err)
+      {
+        Controls.Add(new LiteralControl(err.Message));
+      }
+    }
+  }
+}

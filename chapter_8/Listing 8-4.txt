@@ -1,0 +1,46 @@
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
+using System.Xml;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace LoisAndClark.TestFormWebPart
+{
+   [Guid("48b4bc88-44d5-471e-8cb6-da79a22569ff")]
+  public class TestFormWebPart : System.Web.UI.WebControls.WebParts.WebPart
+  {
+
+    protected override void CreateChildControls()
+    {
+      SPWeb objSite = new SPSite(@"http://mars:9876/SiteDirectory/Site03").OpenWeb();
+      objSite.AllowUnsafeUpdates = true;
+      SPFile objFile = objSite.Folders["TestFormLib"].Files["TestA.xml"];
+
+      MemoryStream objMemoryStream = new MemoryStream(objFile.OpenBinary());
+      XmlTextReader objXmlReader = new XmlTextReader(objMemoryStream);
+      XmlDocument objXmlDocument = new XmlDocument();
+      objXmlDocument.Load(objXmlReader);
+      objXmlReader.Close();
+      objMemoryStream.Close();
+
+      XmlElement objRootElement = objXmlDocument.DocumentElement;
+
+      XmlNamespaceManager objNamespaceManager = new XmlNamespaceManager(objXmlDocument.NameTable);
+      objNamespaceManager.AddNamespace("my", "http://schemas.microsoft.com/office/infopath/2003 /myXSD/2007-08-17T08:22:21");
+      XmlNode objNode = objXmlDocument.SelectSingleNode("//my:Email", objNamespaceManager);
+      objNode.InnerXml = "info@lcbridge.nl";
+
+      ASCIIEncoding encoding = new ASCIIEncoding();
+      objFile = objSite.Folders["TestFormLib"].Files.Add("TestA-edited.xml", (encoding.GetBytes(objXmlDocument.OuterXml)), true);
+    }
+  }
+}

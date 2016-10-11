@@ -1,0 +1,25 @@
+<html>
+<body onload="InitRemoteCall();">
+<div id="service" style="behavior:url(webservice.htc)"></div>
+
+<script>
+function InitRemoteCall()
+{
+  service.useService("http://pluto/AskMe/Mediator.asmx?WSDL","Mediator");
+  var intId = service.Mediator.callService(OnGetNameResult, "GetCurrentSiteName");
+}
+
+function OnGetNameResult(objResult)
+{
+  if ( objResult.error )
+  {
+    alert(objResult.errorDetail.string + " " + objResult.errorDetail.code + " " + objResult.errorDetail.raw);
+  }
+  else
+  {
+    alert(objResult.value);
+  }
+}
+</script>
+</body>
+</html>

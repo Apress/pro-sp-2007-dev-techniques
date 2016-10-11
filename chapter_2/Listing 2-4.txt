@@ -1,0 +1,35 @@
+function CustomLibHello()
+{
+  LoadOnDemand();
+}
+
+function LoadOnDemand()
+{
+  ensureUploadScriptIsLoaded();
+  if (self.OnDemandHello == null )
+  {
+    alert('not yet loaded');
+    setTimeout("LoadOnDemand();",2000);
+  }
+  else
+  {
+    alert('loaded');
+    OnDemandHello();
+  }
+}
+
+function ensureUploadScriptIsLoaded()
+{
+  if (self.OnDemandHello)
+  {
+    // OnDemandHello() is already loaded.
+    return;
+  }
+
+  var objHeadElement = document.getElementsByTagName('head')[0];
+  var objScriptLibrary = document.createElement('script');
+  objScriptLibrary.id = 'OnDemandScript';
+  objScriptLibrary.type = 'text/javascript';
+  objScriptLibrary.src = '/wpresources/ondemand.js';
+  objHeadElement.appendChild(objScriptLibrary);
+}

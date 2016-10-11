@@ -1,0 +1,22 @@
+objRequest = new ActiveXObject("Msxml2.XMLHTTP");
+objRequest.open("POST", "/askme/mediator.asmx/Hi", true);
+objRequest.onreadystatechange = OnResponse;
+objRequest.send(null);
+
+function OnResponse()
+{
+  if ( _objRequest.readyState != 4 )
+  {
+    alert('not ready yet');
+    return;
+  }
+
+  // Error checking
+  if ( _objRequest.status != 200 )
+  {
+    alert("unexpected status!");
+  }
+
+  var strResponse = _objRequest.responseText;
+  alert(strResponse);
+}

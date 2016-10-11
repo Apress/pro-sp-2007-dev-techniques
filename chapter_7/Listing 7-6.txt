@@ -1,0 +1,43 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using System.Security.Principal;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using Microsoft.SharePoint.Navigation;
+
+namespace LoisAndClark.ImpersonationAndElevation
+{
+  [Guid("47500629-54d5-4ac4-ac44-097b4ce2e3eb")]
+  public class SuperPart : System.Web.UI.WebControls.WebParts.WebPart  
+  {
+    [DllImport("advapi32.dll", SetLastError = true)]
+    static extern bool RevertToSelf();
+
+    protected override void CreateChildControls()
+    {
+      try
+      {
+        string strValue = String.Empty;
+
+        WindowsIdentity objOriginalUser = WindowsIdentity.GetCurrent();
+        RevertToSelf();
+        strValue += "application pool identity name: " + WindowsIdentity.GetCurrent().Name + "<br/>";
+
+        // Execute code that needs to have elevated privileges.
+
+        WindowsImpersonationContext objContext = objOriginalUser.Impersonate();
+        strValue += "original user name: " + WindowsIdentity.GetCurrent().Name;
+
+        Controls.Add(new LiteralControl(strValue));
+      }
+      catch (Exception err)
+      {
+        Controls.Add(new LiteralControl(err.Message));
+      }
+    }
+  }
+}

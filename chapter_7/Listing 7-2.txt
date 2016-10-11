@@ -1,0 +1,94 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using System.Security.Principal;
+using System.IO;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace LoisAndClark.ImpersonationAndElevation
+{
+  [Guid("47500629-54d5-4ac4-ac44-097b4ce2e3eb")]
+  public class SuperPart : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    [DllImport("advapi32.dll", SetLastError = true)]
+    static extern bool LogonUser(
+      string principal,
+      string authority,
+      string password,
+      LogonTypes logonType,
+      LogonProviders logonProvider,
+      out IntPtr token);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool CloseHandle(IntPtr handle);
+
+    enum LogonTypes : uint
+    {
+      Interactive = 2,
+      Network,
+      Batch,
+      Service,
+      NetworkCleartext = 8,
+      NewCredentials
+    }
+
+    enum LogonProviders : uint
+    {
+      Default = 0, // default
+      WinNT35,
+      WinNT40, // uses NTLM
+      WinNT50 // negotiates Kerberos or NTLM
+    }
+
+    public SuperPart()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void CreateChildControls()
+    {			
+      try
+      {				
+        WindowsImpersonationContext objUserContext;
+        IntPtr objToken;
+        WindowsIdentity objOrgIdentity;
+        WindowsIdentity objIdentity;
+
+        bool blnReturn = LogonUser(@"SuperB", "web1", "superb", LogonTypes.Interactive, LogonProviders.Default, out objToken);
+
+        string strValue = String.Empty;
+
+        if (blnReturn)
+        {
+          objOrgIdentity = WindowsIdentity.GetCurrent();
+          objIdentity = new WindowsIdentity(objToken);
+          objUserContext = objIdentity.Impersonate();
+
+          string strText = File.ReadAllText(@"C:\Temp\test.txt");			 		
+          Controls.Add(new LiteralControl(strText + "</br>"));
+
+          strValue += "Identity name after impersonation: " + " " + objIdentity.Name + "<br/>";
+          objUserContext.Undo();
+          strValue += "Identity name when impersonation is undone: " + objOrgIdentity.Name;
+
+          CloseHandle(objToken);
+        }
+        else
+        {
+          strValue = "Logon failed!";
+        }
+
+        Controls.Add(new LiteralControl(strValue));
+      }
+      catch (Exception err)
+      {
+        Controls.Add(new LiteralControl(err.Message));
+      }			
+			
+    }		
+  }
+}

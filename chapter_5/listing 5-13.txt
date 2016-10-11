@@ -1,0 +1,73 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using System.ComponentModel;
+using System.Data;
+using System.Globalization;
+using System.Collections;
+using System.Web;
+using Microsoft.SharePoint.Security;
+using System.Security.Permissions;
+
+namespace Connections
+{
+  [Guid("371f6f56-e0f8-4df2-bc1c-bab9fbd9b092")]
+  public class RowProvider : System.Web.UI.WebControls.WebParts.WebPart, IWebPartRow
+  {
+    private DataTable _dtData;
+
+    public RowProvider()
+    {
+      this.ExportMode = WebPartExportMode.All;
+			
+      _dtData = new DataTable();
+      _dtData.Locale = CultureInfo.InvariantCulture;
+
+      DataColumn objColumnA = new DataColumn();
+      objColumnA.DataType = typeof(string);
+      objColumnA.ColumnName = "ColumnA";
+      _dtData.Columns.Add(objColumnA);
+
+      DataColumn objColumnB = new DataColumn();
+      objColumnB.DataType = typeof(string);
+      objColumnB.ColumnName = "ColumnB";
+      _dtData.Columns.Add(objColumnB);
+
+      DataRow objRow = _dtData.NewRow();
+      objRow["ColumnA"] = "row provider column A value";
+      objRow["ColumnB"] = "row provider column B value";
+      _dtData.Rows.Add(objRow);
+    }
+
+    protected override void Render(HtmlTextWriter writer)
+    {			
+      writer.Write("Provider RowProvider");
+    }
+
+    [ConnectionProvider("my row provider")]
+    public IWebPartRow GetRowProvider()
+    {
+      return this;
+    }
+
+    public void GetRowData(RowCallback callback)
+    {
+      DataRowCollection coll = _dtData.Rows;
+      DataRowView view = _dtData.DefaultView[0];
+      callback.Invoke(_dtData.Rows);
+    }
+
+    public System.ComponentModel.PropertyDescriptorCollection Schema
+    {
+      get
+      {
+        return TypeDescriptor.GetProperties(_dtData.DefaultView[0]);
+      }
+    }
+  }
+}

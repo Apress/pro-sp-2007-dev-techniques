@@ -1,0 +1,71 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using System.ComponentModel;
+using System.Data;
+
+namespace Connections
+{
+  [Guid("64fd1be8-d803-4fb6-893a-3799a278168c")]
+  public class TableProvider : System.Web.UI.WebControls.WebParts.WebPart, IWebPartTable
+  {
+    private DataTable _dtData;
+
+    public TableProvider()
+    {
+      this.ExportMode = WebPartExportMode.All;
+
+      _dtData = new DataTable();
+
+      DataColumn objColumnA = new DataColumn();
+      objColumnA.DataType = typeof(string);
+      objColumnA.ColumnName = "ColumnA";
+      _dtData.Columns.Add(objColumnA);
+
+      DataColumn objColumnB = new DataColumn();
+      objColumnB.DataType = typeof(string);
+      objColumnB.ColumnName = "ColumnB";
+      _dtData.Columns.Add(objColumnB);
+
+      DataRow objRow1 = _dtData.NewRow();
+      objRow1["ColumnA"] = "table provider column A value row 1";
+      objRow1["ColumnB"] = "table provider column B value row 1";
+      _dtData.Rows.Add(objRow1);
+
+      DataRow objRow2 = _dtData.NewRow();
+      objRow2["ColumnA"] = "table provider column A value row 2";
+      objRow2["ColumnB"] = "table provider column B value row 2";
+      _dtData.Rows.Add(objRow2);
+    }
+
+    protected override void Render(HtmlTextWriter writer)
+    {		
+      writer.Write("Provider TableProvider");
+    }
+
+
+    [ConnectionProvider("my table provider")]
+    public IWebPartTable GetTableProvider()
+    {
+      return this;
+    }
+
+    public void GetTableData(TableCallback callback)
+    {
+      callback.Invoke(_dtData.Rows);
+    }
+
+    public System.ComponentModel.PropertyDescriptorCollection Schema
+    {
+      get 
+      {
+        return TypeDescriptor.GetProperties(_dtData.DefaultView[0]);
+      }
+    }
+  }
+}

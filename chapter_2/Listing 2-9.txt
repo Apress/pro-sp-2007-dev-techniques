@@ -1,0 +1,54 @@
+<%@ Page Language="C#" %>
+<html xmlns="http://www.w3.org/1999/xhtml" >
+  <head runat="server">
+    <title>PerformanceService test page</title>        
+  </head>
+  <body>
+  <form id="form1" runat="server">
+  <div>        
+
+    <asp:ScriptManager ID="ScriptManager1" runat="server">
+      <Services>
+        <asp:ServiceReference Path="~/PerformanceService.asmx" />
+      </Services>
+    </asp:ScriptManager>
+        
+    <input id="GetPerformanceCounter" type="button" value="Get Performance Counter" onclick="GetPerfCounter()" />
+  </div>        
+  </form>
+    
+  <span id="Results"></span>
+   
+  <script type="text/javascript" language="javascript">   
+  <!—
+  function GetPerfCounter()
+  {
+    LoisAndClark.PerformanceService.GetProcessorTime(OnRequestComplete, OnRequestFailure);
+  }
+
+  function OnRequestComplete(strResult)
+  {
+    var objDisplay = document.getElementById("Results");
+    objDisplay.innerHTML = strResult;
+  }
+
+  function OnRequestFailure(error)
+  {
+    var strStackTrace = error.get_stackTrace();
+    var strMessage = error.get_message();
+    var strStatusCode = error.get_statusCode();
+    var strExceptionType = error.get_exceptionType();
+    var strTimedout = error.get_timedOut();
+   
+    alert("Error\n" + 
+    "Stack Trace: " +  strStackTrace + "\n" +
+    "Service Error: " + strMessage + "\n" +
+    "Status Code: " + strStatusCode + "\n" +
+    "Exception Type: " + strExceptionType + "\n" +
+    "Timedout: " + strTimedout);
+  }
+  //-->
+  </script>
+
+  </body>
+</html>

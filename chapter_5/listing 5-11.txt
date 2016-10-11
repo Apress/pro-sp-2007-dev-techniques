@@ -1,0 +1,44 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace Connections
+{
+  [Guid("969e5c8f-0682-43f5-a17f-fcdd57c65f8a")]
+  public class FieldConsumer : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public FieldConsumer()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void Render(HtmlTextWriter writer)
+    {            
+      writer.Write(Value);
+    }
+
+    [ConnectionConsumer("my field consumer")]
+    public void GetProvider(IWebPartField objProvider)
+    {
+      FieldCallback objCallback = new FieldCallback(GetField);
+      objProvider.GetFieldValue(objCallback);
+    }
+
+    public void GetField(object objField)
+    {
+      if ( objField != null ) Value = objField.ToString();
+    }
+
+    private string _strValue = "default consumer value";
+    public string Value
+    {
+      get { return _strValue; }
+      set { _strValue = value; }
+    }	
+  }
+}

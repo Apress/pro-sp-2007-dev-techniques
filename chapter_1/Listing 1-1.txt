@@ -1,0 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace LoisAndClark.WPLibrary
+{
+  public class MyWP : WebPart
+  {
+    protected override void CreateChildControls()
+    {
+      Content obj = new Content();
+      string str1 = obj.MyContent<string>("Hello World!");
+      this.Controls.Add(new System.Web.UI.LiteralControl(str1));
+    }
+  }
+}

@@ -1,0 +1,56 @@
+<%@ WebService Language="C#" Class="LoisAndClark.CompanyContact. ~CCC 
+ContactService"%>
+using System;
+using System.Web;
+using System.Collections;
+using System.Web.Services;
+using System.Web.Services.Protocols;
+using Microsoft.SharePoint;
+
+namespace LoisAndClark.CompanyContact
+{
+  [WebService(Namespace = "http://tempuri.org/")]
+  [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+  public class ContactService : System.Web.Services.WebService
+  {
+    public ContactService()
+    {
+    }
+
+    [WebMethod]
+    public string GetContactInfo(string strCompanyName)
+    {
+      string strResponse = "\"ContactPerson\":\"{0}\", \"City\":\"{1}\", \"Country\":\"{2}\"";
+      string strUrl = "http://web1:23456/jfz/test";
+
+      try
+      {
+        // Watch out!: this code doesn’t close and dispose 
+        // SPSite and SPWeb objects.
+        SPSite objSites = new SPSite(strUrl);
+        SPWeb objSite = objSites.OpenWeb();
+        
+        SPList objContactList = objSite.Lists["ContactInfo"];
+        foreach (SPListItem objItem in objContactList.Items)
+        {
+          string strName = objItem["CompanyName"].ToString();
+          if (strName == strCompanyName)
+          {
+            string strContact = objItem["ContactPerson"].ToString();
+            string strCity = objItem["City"].ToString();
+            string strCountry = objItem["Country"].ToString();
+
+            strResponse = "{" + String.Format(strResponse, strContact, strCity, strCountry) + "}";
+            break;
+          }
+        }
+
+        return strResponse;
+      }
+      catch (Exception)
+      {
+        throw;
+      }
+    }
+  }
+}

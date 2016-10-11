@@ -1,0 +1,21 @@
+using System;
+using System.Web;
+using System.Collections;
+using System.Web.Services;
+using System.Web.Services.Protocols;
+using Microsoft.SharePoint.WebControls;
+
+[WebService(Namespace = "http://tempuri.org/")]
+[WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+public class Mediator : System.Web.Services.WebService
+{
+  public Mediator ()
+  {
+  }
+
+  [WebMethod]
+  public string GetCurrentSiteName()
+  {
+    return SPControl.GetContextWeb(Context).Name;
+  }
+}

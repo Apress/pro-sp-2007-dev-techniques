@@ -1,0 +1,58 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using System.ComponentModel;
+
+namespace Connections
+{
+  [Guid("6203652c-9d3f-4c43-8b5e-0ca00b98e4bd")]
+  public class FieldProvider : System.Web.UI.WebControls.WebParts.WebPart, IWebPartField
+  {
+    public FieldProvider()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void Render(HtmlTextWriter writer)
+    {			
+      writer.Write("Provider FieldProvider");
+    }
+
+    [ConnectionProvider("My field provider")]
+    public IWebPartField GetFieldProvider()
+    {
+      return this;
+    }
+
+    public void GetFieldValue(FieldCallback callback)
+    {
+      callback.Invoke(ColumnA);
+    }
+
+    public System.ComponentModel.PropertyDescriptor Schema
+    {
+      get 
+      {
+        return TypeDescriptor.GetProperties(this)["ColumnA"];
+      }
+    }
+
+    private string _strColumnA = "default value for column a";
+    [
+      Personalizable(PersonalizationScope.Shared)
+      , WebBrowsable(true)
+      , WebDisplayName("Column A")
+      , WebDescription("Value for column A")
+    ]
+    public string ColumnA
+    {
+      get { return _strColumnA; }
+      set { _strColumnA = value; }
+    }	
+  }
+}

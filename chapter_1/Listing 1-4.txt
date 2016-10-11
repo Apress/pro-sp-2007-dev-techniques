@@ -1,0 +1,67 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace LoisAndClark.WPLibrary
+{
+  [Guid("c22d5295-81a3-4a23-97ed-3a0a3e8caecf")]
+  public class WPLibrary : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public WPLibrary() : base()
+    { }
+
+    protected override void OnInit(EventArgs e)
+    {
+      base.OnInit(e);
+    }
+
+    protected override void OnLoad(EventArgs e)
+    {
+      base.OnLoad(e);
+    }
+
+    protected override void CreateChildControls()
+    {
+      TextBox txtAddress = new TextBox();
+      txtAddress.ID = "txtAddress";
+      Controls.Add(txtAddress);
+
+      Button btnSubmit = new Button();
+      btnSubmit.ID = "btnSubmit";
+      btnSubmit.Click += new EventHandler(btnSubmit_Click);
+      Controls.Add(btnSubmit);						
+    }
+
+    void btnSubmit_Click(object sender, EventArgs e)
+    {
+      throw new Exception("The method or operation is not implemented.");
+    }
+
+    protected override void OnPreRender(EventArgs e)
+    {
+      base.OnPreRender(e);
+    }
+
+    protected override void Render(HtmlTextWriter writer)
+    {
+      base.Render(writer);			
+    }
+
+    protected override void RenderContents(HtmlTextWriter writer)
+    {
+      writer.Write("Hello world!");
+    }
+
+    protected override void OnUnload(EventArgs e)
+    {
+      base.OnUnload(e);
+    }
+  }
+}

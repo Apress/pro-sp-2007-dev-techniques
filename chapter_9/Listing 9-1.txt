@@ -1,0 +1,18 @@
+string strSiteCollUrl = "http://[server]/sites/SearchPlayground";
+SPSite objSite = new SPSite(strSiteCollUrl);
+
+FullTextSqlQuery objQuery = new FullTextSqlQuery(objSite);
+string strQuery = "SELECT Title, Rank, Size, Description, Write, Path FROM portal..scope()  ORDER BY \"Rank\" DESC";
+								
+objQuery.QueryText = strQuery;
+objQuery.ResultTypes = ResultType.RelevantResults;
+objQuery.EnableStemming = true;
+ResultTableCollection collResult = objQuery.Execute();
+
+ResultTable objResult = null;
+DataTable objData = new DataTable();
+if (collResult.Count > 0)
+{
+  objResult = collResult[ResultType.RelevantResults];
+  objData.Load(objResult, LoadOption.OverwriteChanges);
+}

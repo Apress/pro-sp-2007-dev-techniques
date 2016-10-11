@@ -1,0 +1,45 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace LoisAndClark.Ajax
+{
+  [Guid("be6ec8e3-2706-4f52-bdf9-f6eb18fc65c0")]
+  public class AjaxClient : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public AjaxClient()
+    {
+      PreRender += new EventHandler(AjaxClient_PreRender);
+    }
+
+    void AjaxClient_PreRender(object sender, EventArgs e)
+    {
+      if (!Page.ClientScript.IsClientScriptIncludeRegistered ("MyKey1"))
+      {
+        Page.ClientScript.RegisterClientScriptInclude("MyKey1", "/wpresources/customlib.js");
+      }
+
+      if (!Page.ClientScript.IsClientScriptBlockRegistered("MyKey2"))
+      {
+        Page.ClientScript.RegisterClientScriptBlock(typeof(string), "MyKey2", "alert('test');", true);
+      }
+    }
+
+    protected override void CreateChildControls()
+    {
+      try
+      {
+        // … do stuff…
+      }
+      catch (Exception err)
+      {
+        Controls.Add(new LiteralControl(err.Message));
+      }
+    }
+  }
+}

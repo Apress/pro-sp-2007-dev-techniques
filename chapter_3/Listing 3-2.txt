@@ -1,0 +1,86 @@
+using System;
+using System.Collections;
+using d = System.Data;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Security;
+using System.Security.Permissions;
+using System.Security.Principal;
+using Microsoft.ReportingServices.DataProcessing;
+
+namespace LoisAndClark.SharePointListExtension
+{
+  public class DataReader : IDataReader
+  {
+    private Connection _objConn = null;
+    private d.DataTable _objDataTable;
+    private DataParameterCollection _objDataParameters = null;
+    IEnumerator enumTable = null;
+
+    public DataReader()
+    { }
+
+    public DataReader(Connection objConn, d.DataTable objDataTable)
+    {
+      _objConn = objConn;
+      _objDataTable = objDataTable;
+    }
+
+    public DataReader(Connection objConn, d.DataTable objDataTable, DataParameterCollection objParameters) : this(objConn, objDataTable)
+    {
+      _objDataParameters = objParameters;
+    }
+
+    public bool Read()
+    {
+      if (enumTable == null)
+      {
+        enumTable = _objDataTable.Rows.GetEnumerator();
+      }
+      return enumTable.MoveNext();
+    }
+
+    protected d.DataRow CurrentRow
+    {
+      get { return (d.DataRow)enumTable.Current; }
+    }
+
+    public int FieldCount
+    {
+      get { return _objDataTable.Columns.Count; }
+    }
+
+    public string GetName(int i)
+    {
+      return _objDataTable.Columns[i].ColumnName;
+    }
+
+    public Type GetFieldType(int i)
+    {
+      return _objDataTable.Columns[i].DataType;
+    }
+
+    public Object GetValue(int i)
+    {
+      return CurrentRow[i];
+    }
+
+    public int GetOrdinal(string strName)
+    {
+      foreach (d.DataColumn objColumn in _objDataTable.Columns)
+      {
+        if (objColumn.ColumnName == strName)
+        {
+          return objColumn.Ordinal;
+        }
+      }
+      throw new IndexOutOfRangeException(" There is no field with the name " + strName);
+    }
+
+    public void Dispose()
+    {
+      _objDataTable.Dispose();
+    }
+  }
+}

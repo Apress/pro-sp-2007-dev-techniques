@@ -1,0 +1,53 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace LoisAndClark.ImpersonationAndElevation
+{
+  [Guid("47500629-54d5-4ac4-ac44-097b4ce2e3eb")]
+  public class SuperPart : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public SuperPart()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void CreateChildControls()
+    {
+      try
+      {
+        string strValue = String.Empty;
+
+        SPSite site = SPControl.GetContextSite(Context);
+        SPWeb web = site.AllWebs["PrivilegesTest"];
+        SPUser user = web.AllUsers[@"web1\NormalB"];
+
+        CheckInAndOut(user);					
+      }
+      catch (Exception err)
+      {
+        Controls.Add(new LiteralControl(err.Message));
+      }
+    }
+
+    private void CheckInAndOut(SPUser user)
+    {
+      SPSite objSite = new SPSite("http://web1", user.UserToken);
+      SPWeb objWeb = objSite.AllWebs["PrivilegesTest"];
+
+      objWeb.AllowUnsafeUpdates = true;
+      SPFile objFile = objWeb.GetFile("Shared Documents/Test.doc");
+      objFile.CheckOut();
+      SPUser objUser = objFile.CheckedOutBy;
+      objFile.CheckIn("check-in version: " + objFile.UIVersion + " by " +  
+      objUser.Name);
+
+      Controls.Add(new LiteralControl(objFile.Name + " checked out by: " + objUser.Name));
+    }
+  }
+}

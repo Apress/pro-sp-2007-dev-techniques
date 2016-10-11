@@ -1,0 +1,22 @@
+private DataTable _dtData;
+
+public RowProvider()
+{
+  this.ExportMode = WebPartExportMode.All;
+			
+  _dtData = new DataTable();
+  DataColumn objColumnA = new DataColumn();
+  objColumnA.DataType = typeof(string);
+  objColumnA.ColumnName = "ColumnA";
+  _dtData.Columns.Add(objColumnA);
+
+  DataColumn objColumnB = new DataColumn();
+  objColumnB.DataType = typeof(string);
+  objColumnB.ColumnName = "ColumnB";
+  _dtData.Columns.Add(objColumnB);
+
+  DataRow objRow = _dtData.NewRow();
+  objRow["ColumnA"] = "row provider column A value";
+  objRow["ColumnB"] = "row provider column B value";
+  _dtData.Rows.Add(objRow);
+}

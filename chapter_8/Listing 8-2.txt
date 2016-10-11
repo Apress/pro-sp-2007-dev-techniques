@@ -1,0 +1,8 @@
+<html>
+  <body>
+    <script language="javascript">
+      document.write(~CCC
+      unescape('%7B4008B331%2D501E%2D4E73%2DA147%2D822D01E4326C%7D'));
+    </script>
+  </body>
+</html>

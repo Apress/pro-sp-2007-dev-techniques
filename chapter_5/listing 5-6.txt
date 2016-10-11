@@ -1,0 +1,33 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Microsoft.SharePoint;
+using System.Web.UI.WebControls.WebParts;
+
+namespace Connections
+{
+  [WebPartTransformer(typeof(IMySecondInterface), typeof(IMyFirstInterface))]
+  public class MyInterfaceTransformer : WebPartTransformer, IMyFirstInterface      
+  {
+    IMyFirstInterface _objFirstObject;
+    IMySecondInterface _objSecondObject;
+
+    public override object Transform(object providerData)
+    {
+      _objSecondObject = (IMySecondInterface)providerData;
+      return this;
+    }
+
+    public string Name
+    {
+      get
+      {
+        return _objSecondObject.CurrentTitle;
+      }
+      set
+      {
+        _objSecondObject.CurrentTitle = value;
+      }
+    }
+  }
+}

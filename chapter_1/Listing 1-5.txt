@@ -1,0 +1,69 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace LoisAndClark.AspNetExample
+{
+  [Guid("288802c4-4dfe-45b6-bb28-49dda89ec225")]
+  public class NormalPart : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    FileUpload _objFileUpload = new FileUpload();
+  
+    protected override void CreateChildControls()
+    {
+      Controls.Add(_objFileUpload);
+
+      Button btnUpload = new Button();
+      btnUpload.Text = "Save File";
+      this.Load += new System.EventHandler(btnUpload_Click);
+      Controls.Add(btnUpload);
+    }
+
+    private void btnUpload_Click(object sender, EventArgs e)
+    {
+      using (SPSite objSite = new SPSite(SiteCollectionUrl))
+      {
+        using (SPWeb objWeb = objSite.OpenWeb(SiteUrl))
+        {
+          SPList objList = objWeb.Lists[ListName];
+          if (_objFileUpload.HasFile)
+          {
+            objList.RootFolder.Files.Add(_objFileUpload.FileName, 
+            _objFileUpload.PostedFile.InputStream, true);
+          }
+        }
+      }	
+    }
+
+    private string _strSiteCollectionUrl;
+    [Personalizable(PersonalizationScope.Shared), WebBrowsable(true), WebDisplayName("Site Collection URL"), WebDescription("Enter the URL of the site collection that contains the list a document is uploaded to")]
+    public string SiteCollectionUrl
+    {
+      get { return _strSiteCollectionUrl; }
+      set { _strSiteCollectionUrl = value; }
+    }
+
+    private string _strSiteUrl;
+    [Personalizable(PersonalizationScope.Shared), WebBrowsable(true), WebDisplayName("Site Collection URL"), WebDescription("Enter the URL of the site that contains the list a document is uploaded to")]
+    public string SiteUrl
+    {
+      get { return _strSiteUrl; }
+      set { _strSiteUrl = value; }
+    }
+
+    private string _strListName;
+    [Personalizable(PersonalizationScope.Shared), WebBrowsable(true), WebDisplayName("List name"), WebDescription("Enter the name of the list that will contain the uploaded document")]
+    public string ListName
+    {
+      get { return _strListName; }
+      set { _strListName = value; }
+    }
+  }
+}

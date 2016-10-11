@@ -1,0 +1,7 @@
+<transformers>
+  <!--
+  The other registrations for transformers are not shown in this code listing.
+  They will be discussed in section “SharePoint 2007 transformers”.
+  -->
+  <add name="MyInterfaceTransformer" type="Connections.MyInterfaceTransformer, MyWebPartLibrary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9f4da00116c38ec5" />
+</transformers>

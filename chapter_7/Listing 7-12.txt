@@ -1,0 +1,6 @@
+private void Form1_Load(object sender, EventArgs e)
+{
+  MyWCFServiceReference.MyWCFServiceClient objService = new MyWCFServiceReference.MyWCFServiceClient();						
+  string strResult = objService.DoWork();
+  objService.Close();
+}

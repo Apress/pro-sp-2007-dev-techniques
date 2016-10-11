@@ -1,0 +1,81 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+using System.Collections;
+using System.ComponentModel;
+
+namespace Connections
+{
+  [Guid("87f37650-ac8c-4ad2-9ff1-328ebf6fe4a5")]
+  public class ParametersConsumer : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public ParametersConsumer()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void Render(HtmlTextWriter writer)
+    {
+      writer.Write("ColumnA: " + ColumnA);
+      writer.WriteBreak();
+
+      writer.Write("ColumnB: " + ColumnB);
+      writer.WriteBreak();
+    }
+
+     [ConnectionConsumer("my parameters consumer")]
+      public void GetProvider(IWebPartParameters objProvider)
+      {				
+        PropertyDescriptor[] objProperties = 
+        { 
+          TypeDescriptor.GetProperties(this)["ColumnA"],
+          TypeDescriptor.GetProperties(this)["ColumnB"]				
+        };
+        PropertyDescriptorCollection objSchema = new PropertyDescriptorCollection(objProperties);
+        objProvider.SetConsumerSchema(objSchema);
+					
+        ParametersCallback objCallback = new ParametersCallback(GetParameters);
+        objProvider.GetParametersData(objCallback);
+      }
+
+      public void GetParameters(IDictionary objParameters)
+      {
+        foreach (DictionaryEntry objEntry in objParameters) 
+        {
+          StateItem objStateItem;
+          switch (objEntry.Key.ToString())
+          {
+            case "ColumnA":
+              objStateItem = (StateItem) objEntry.Value;
+              ColumnA = objStateItem.Value.ToString();
+              break;
+            case "ColumnB":
+              objStateItem = (StateItem) objEntry.Value;
+              ColumnB = objStateItem.Value.ToString();
+              break;
+            default:
+              throw new Exception("unknown parameter");
+          }
+        }
+      }
+
+      private string _strColumnA = "parameters consumer default value column A";
+      public string ColumnA
+      {
+        get { return _strColumnA; }
+        set { _strColumnA = value; }
+      }
+
+      private string _strColumnB = "parameters consumer default value column B";
+      public string ColumnB
+      {
+        get { return _strColumnB; }
+        set { _strColumnB = value; }
+      }	
+    }
+}

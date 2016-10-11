@@ -1,0 +1,30 @@
+<Configuration>
+  <Producer Name="Sample1" AllowScripts="true">
+    <ServiceDescriptionURL>
+    http://wsrp.netunitysoftware.com:80/WSRPTestService/WSRPTestService.asmx
+    </ServiceDescriptionURL>
+    <RegistrationURL>
+    http://wsrp.netunitysoftware.com:80/WSRPTestService/WSRPTestService.asmx
+    </RegistrationURL>
+    <MarkupURL>
+    http://wsrp.netunitysoftware.com:80/WSRPTestService/WSRPTestService.asmx
+    </MarkupURL>
+    <PortletManagementURL>
+    http://wsrp.netunitysoftware.com:80/WSRPTestService/WSRPTestService.asmx
+    </PortletManagementURL>       
+  </Producer>
+  <Producer Name="Sample2" AllowScripts="true">
+    <ServiceDescriptionURL>
+    http://wsrp.netunitysoftware.com:80/WSRPTestService/WSRPTestService.asmx
+    </ServiceDescriptionURL>
+    <RegistrationURL>
+    http://wsrp.netunitysoftware.com:80/WSRPTestService/WSRPTestService.asmx
+    </RegistrationURL>
+    <MarkupURL>
+    http://wsrp.netunitysoftware.com:80/WSRPTestService/WSRPTestService.asmx
+    </MarkupURL>
+    <PortletManagementURL>
+    http://wsrp.netunitysoftware.com:80/WSRPTestService/WSRPTestService.asmx
+    </PortletManagementURL>       
+  </Producer>
+</Configuration>

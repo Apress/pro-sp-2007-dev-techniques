@@ -1,0 +1,16 @@
+<Configuration ProxyAddress="">
+  <Producer Name="MyProducer" AllowScripts="true">  
+    <ServiceDescriptionURL>
+    http://[WSRP producer URL]/testwsrpproducer/WsrpProducer.asmx
+    </ServiceDescriptionURL>     
+    <RegistrationURL>
+    http://[WSRP producer URL]/testwsrpproducer/WsrpProducer.asmx
+    </RegistrationURL>
+    <MarkupURL>
+    http://[WSRP producer URL]/testwsrpproducer/WsrpProducer.asmx
+    </MarkupURL>
+    <PortletManagementURL>
+    http://[WSRP producer URL]/testwsrpproducer/WsrpProducer.asmx
+    </PortletManagementURL>       
+  </Producer>
+</Configuration>

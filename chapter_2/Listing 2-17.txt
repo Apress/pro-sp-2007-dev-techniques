@@ -1,0 +1,19 @@
+function AutoFillRequest()
+{
+  var objCompanyName = document.getElementById("CompanyName");
+  LoisAndClark.CompanyContact.ContactService.GetContactInfo( objCompanyName.value, OnAutoFillResponse) ;  
+}
+
+function OnAutoFillResponse(strResult)
+{
+  var objContact = strResult.parseJSON();
+
+  var objContactPerson = document.getElementById("ContactPerson");
+  objContactPerson.value = objContact.ContactPerson;
+
+  var objCity = document.getElementById("City");
+  objCity.value = objContact.City;
+
+  var objCountry = document.getElementById("Country");
+  objCountry.value = objContact.Country;
+}

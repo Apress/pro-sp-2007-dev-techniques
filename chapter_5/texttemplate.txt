@@ -1,0 +1,879 @@
+<#@ template 
+inherits=" 
+Microsoft.VisualStudio.TextTemplating.VSHost.ModelingTextTransformation" 
+debug="true"#>
+<#@ WebPartConnectionLanguage 
+processor="WebPartConnectionLanguageDirectiveProcessor" 
+requires="fileName='Test.wpcl'" #>
+<#@ output extension=".cs" #>
+<#@ import namespace="System.Diagnostics" #>
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using Microsoft.SharePoint;
+using System.ComponentModel;
+using System.Data;
+using System.Collections;
+using System.Globalization;
+
+namespace <#= WPCLModel.Namespace #>
+{
+<#= CreateInterfaces(WPCLModel.Interface) #>
+<#
+foreach (WebPart objWebPart in WPCLModel.Elements )
+{
+  #>  
+  public class <#= objWebPart.Name #> : WebPart<#= GetInterfaces(objWebPart) #> 
+  {
+<#
+if (IsProvider(objWebPart) )
+{
+// Create GetFieldProvider method for a provider
+if (IsFieldProvider(objWebPart) )
+{
+#>
+    <#= GetRender(objWebPart) #>
+    
+    [ConnectionProvider("field provider <#= GetName(objWebPart) #>")]
+    public IWebPartField GetFieldProvider()
+    {
+      return this;
+    }    
+    <#= GetFieldValue(objWebPart) #>     
+    <#= GetSinglePropSchema(objWebPart) #> 
+<#= GetColumns(objWebPart) #> 
+    
+<#
+} 
+// End Create GetFieldProvider
+#>
+<#
+// Create GetRowProvider method for a provider
+if (IsRowProvider(objWebPart) )
+{
+#>
+    private DataTable _dtData;
+
+    <#= GetDataTableProviderCtor(objWebPart) #>    
+    <#= GetRender(objWebPart) #>    
+    [ConnectionProvider("row provider <#= GetName(objWebPart) #>")]
+    public IWebPartRow GetRowProvider()
+    {
+      return this;
+    }
+
+    <#= GetRowData(objWebPart) #>
+    <#= GetDefaultViewSchema() #>
+<#
+}
+// End Create GetRowProvider
+#>
+<#
+// Create GetTableProvider method for a provider
+if (IsTableProvider(objWebPart) )
+{
+#>
+    private DataTable _dtData;
+
+    <#= GetDataTableProviderCtor(objWebPart) #>    
+    <#= GetRender(objWebPart) #>    
+    [ConnectionProvider("table provider <#= GetName(objWebPart) #>")]
+    public IWebPartTable GetTableProvider()
+    {
+      return this;
+    }
+    
+    <#= GetTableData() #>  
+    <#= GetDefaultViewSchema() #>  
+<#
+//End Table provider
+}
+#>
+<#
+// Create GetParametersProvider method for a provider
+if (IsParametersProvider(objWebPart) )
+{
+#>
+    <#= GetRender(objWebPart) #>    
+    [ConnectionProvider("parameters provider <#= GetName(objWebPart) #>")]
+    public IWebPartParameters GetParametersProvider()
+    {
+      return this;
+    }    
+
+<#= GetParametersData(objWebPart) #> 
+    public System.ComponentModel.PropertyDescriptorCollection Schema
+    {
+      get 
+      {
+        PropertyDescriptorCollection objProperties;				
+        PropertyDescriptor[] arrProperties = new PropertyDescriptor[Parameters.Count];        
+
+        objProperties = TypeDescriptor.GetProperties(this);
+        int intParameterCount = 0;
+        foreach (PropertyDescriptor objProperty in Parameters)
+        {
+          if (Parameters[objProperty.Name] != null )
+          {
+            intParameterCount++;
+            arrProperties[intParameterCount] = objProperty;
+          }
+        }
+
+        objProperties = new PropertyDescriptorCollection(arrProperties);
+        return objProperties;
+      }
+    }
+
+    public void SetConsumerSchema(System.ComponentModel.PropertyDescriptorCollection schema)
+    {
+      Parameters = schema;			
+    }
+
+    private PropertyDescriptorCollection _objParameters;
+    public PropertyDescriptorCollection Parameters
+    {
+      get { return _objParameters; }
+      set { _objParameters = value; }
+    }
+
+<#= GetColumns(objWebPart) #> 
+<#
+} 
+//End Parameters provider
+#>
+<#
+// Create custom provider method for a provider
+if (IsCustomProvider(objWebPart) )
+{
+#>
+    protected override void RenderContents(HtmlTextWriter writer)
+    {			
+      writer.Write("custom interface provider <#= GetName(objWebPart) #>");
+    }
+    
+    <#= GetCustomInterfaceGetProvider(objWebPart) #>
+<#= GetInterfaceMethods(objWebPart) #>
+<#
+//end custom
+}
+#>
+<#
+}
+#>
+<#
+if (IsConsumer(objWebPart) )
+{
+  if (IsFieldConsumer(objWebPart) )
+  {
+#>
+<#= GetFieldConsumerRender(objWebPart) #> 
+    [ConnectionConsumer("Field consumer <#= GetName(objWebPart) #>")]
+    public void GetProvider(IWebPartField objProvider)
+    {
+      FieldCallback objCallback = new FieldCallback(GetField);
+      objProvider.GetFieldValue(objCallback);
+    }
+    
+    <#= GetFieldConsumerGetField(objWebPart) #>
+<#= GetColumns(objWebPart) #>
+<#
+}
+  if (IsRowConsumer(objWebPart) )
+  {
+#>
+<#= GetRowConsumerRender(objWebPart) #>
+    [ConnectionConsumer("Row consumer <#= GetName(objWebPart) #>")]
+    public void GetProvider(IWebPartRow objProvider)
+    {
+      RowCallback objCallback = new RowCallback(GetRow);
+      objProvider.GetRowData(objCallback);
+    }
+
+    public void GetRow(object objRow)
+    {
+      if (objRow != null) Data = (ICollection) objRow;				
+    }
+
+    private ICollection _collData;			
+    public ICollection Data
+    {
+      get { return _collData; }
+      set { _collData = value; }
+    }
+<#
+}
+  if (IsTableConsumer(objWebPart) )
+  {
+#>
+<#= GetRowConsumerRender(objWebPart) #>
+    [ConnectionConsumer("table consumer <#= GetName(objWebPart) #>")]
+    public void GetProvider(IWebPartTable objProvider)
+    {
+      TableCallback objCallback = new TableCallback(GetTable);
+      objProvider.GetTableData(objCallback);
+    }
+
+    public void GetTable(ICollection objTable)
+    {
+      if (objTable != null) Data = (ICollection) objTable;			
+    }
+
+    private ICollection _collData;
+    public ICollection Data
+    {
+      get { return _collData; }
+      set { _collData = value; }
+    }
+<#
+}
+  if (IsParametersConsumer(objWebPart) )
+  {
+#>
+<#= GetParametersConsumerRender(objWebPart) #>
+<#= GetParametersGetProvider(objWebPart) #>
+<#= GetParametersParametersConsumer(objWebPart) #>
+<#= GetColumns(objWebPart) #>
+<#
+}
+  if (IsCustomConsumer(objWebPart) )
+  {
+#>
+<#= GetCustomInterfaceConsumerRender(objWebPart) #>
+<#= GetCustomInterfaceConsumerGetProvider(objWebPart) #>
+<#= GetCustomInterfaceConsumerGetProviderProp(objWebPart) #>
+<#
+}
+#>
+<#
+}
+#>
+  }
+<#
+}
+#>
+}        	                						                            		
+																																																																										
+<#+
+private string GetCustomInterfaceConsumerGetProviderProp(WebPart objWebPart)
+{
+  CustomInterface objCustomInterface = GetCustomInterface(objWebPart);  
+  string strValue = "    private " + objCustomInterface.Name + " _objProvider;\r\n"
+  + "    public " + objCustomInterface.Name + " Provider\r\n"
+  + "    {\r\n"
+  + "      get { return _objProvider; }\r\n"
+  + "      set { _objProvider = value; }\r\n"
+  + "    }\r\n";
+    
+  return strValue;
+}
+
+private string GetCustomInterfaceConsumerGetProvider(WebPart objWebPart)
+{
+  CustomInterface objCustomInterface = GetCustomInterface(objWebPart);  
+  
+  string strValue = "    [ConnectionConsumer(\"connection consumer " + GetName(objWebPart) + "\")]\r\n"
+  + "    public void GetProvider(" + objCustomInterface.Name + " objProvider)\r\n"
+  + "    {\r\n"
+  + "      Provider = objProvider;\r\n"
+  + "    }\r\n";
+  
+  return strValue;
+}
+
+private string GetCustomInterfaceConsumerRender(WebPart objWebPart)
+{
+  string strValue = "    protected override void RenderContents(HtmlTextWriter writer)\r\n"
+  + "    {\r\n"
+  + "      if (Provider != null)\r\n"
+  + "      {\r\n";
+    
+  CustomInterface objCustomInterface = GetCustomInterface(objWebPart);  
+  InformationObject objMethodInfo = objCustomInterface.InformationObjects[0];
+  
+  if (objMethodInfo.DataType == "string" || objMethodInfo.DataType == "String" )
+  {
+    strValue += "        writer.Write(Provider." + objMethodInfo.Name + ");\r\n";
+  }
+  else
+  {
+    strValue += "        writer.Write(Provider." + objMethodInfo.Name + ".ToString());\r\n";
+  }  
+  
+  strValue += "      }\r\n"
+  + "      else\r\n"
+  + "      {\r\n"
+  + "        writer.Write(\"no connection established\");\r\n"
+  + "      }\r\n"
+  + "    }\r\n";
+  
+  return strValue;
+}
+
+private CustomInterface GetCustomInterface(WebPart objWebPart)
+{
+  LinkedElementCollection<WebPart> objProviders = Connection.GetProvider(objWebPart);
+  WebPart objProvider = objProviders[0];
+
+  foreach (IConnectable objInterface in objProvider.IConnectableInterface)  
+  {
+    string strCurrentInterfaceName = objInterface.ToString();
+    if ( strCurrentInterfaceName.IndexOf("CustomInterface") > -1 )
+    {
+      return (CustomInterface) objInterface;
+    }
+  }
+  
+  return null;
+}
+
+private string GetInterfaceMethods(WebPart objWebPart)
+{
+  string strValue = "";
+  
+  foreach (IConnectable objInterface in objWebPart.IConnectableInterface)  
+  {
+    string strCurrentInterfaceName = objInterface.ToString();
+    if ( strCurrentInterfaceName.IndexOf("CustomInterface") > -1 )
+    {
+      CustomInterface objCustomInterface = (CustomInterface) objInterface;
+
+      LinkedElementCollection<InformationObject> objInfoCollection = objCustomInterface.InformationObjects;       
+      foreach (InformationObject objInfo in objInfoCollection)
+      {              
+        string strName = objInfo.Name;
+        string strDataType = objInfo.DataType;
+        string strDefaultValue = objInfo.DefaultValue;
+       
+        strValue += "    public " + strDataType + " " + strName + "\r\n"
+        + "    {\r\n";
+        
+        if (strDataType == "string" || strDataType == "String" )
+        {
+          strValue += "      return \"" + strDefaultValue + "\";\r\n";
+        }
+        else
+        {
+          strValue += "      return " + strDefaultValue + ";\r\n";
+        }
+        
+        strValue += "    }\r\n\r\n";
+      }
+    }      
+  }
+  
+  return strValue;
+}
+
+private string GetCustomInterfaceGetProvider(WebPart objWebPart)
+{
+  string strValue = "[ConnectionProvider(\"custom interface connection provider " + GetName(objWebPart) + "\")]\r\n";
+  
+  foreach (IConnectable objInterface in objWebPart.IConnectableInterface)  
+  {
+    string strCurrentInterfaceName = objInterface.ToString();
+    if ( strCurrentInterfaceName.IndexOf("CustomInterface") > -1 )
+    {
+      strValue += "    public " + objInterface.Name + " Get" + objWebPart.Name + "()\r\n"
+      + "    {\r\n"
+      + "      return this;\r\n"
+      + "    }\r\n";
+    }    
+  }
+  
+  return strValue;
+}
+
+private string CreateInterfaces(LinkedElementCollection<IConnectable> objInterfaces)
+{
+  string strValue = "";
+
+  foreach (IConnectable objInterface in objInterfaces)  
+  {
+    string strCurrentInterfaceName = objInterface.ToString();
+    if ( strCurrentInterfaceName.IndexOf("CustomInterface") > -1 )
+    {
+      CustomInterface objCustomInterface = (CustomInterface) objInterface;
+      strValue += "  public interface " + objInterface.Name + "\r\n"
+      + "  {\r\n";
+            
+      LinkedElementCollection<InformationObject> objInfoCollection = objCustomInterface.InformationObjects;       
+      foreach (InformationObject objInfo in objInfoCollection)
+      {              
+        string strName = objInfo.Name;
+        string strDataType = objInfo.DataType;
+        string strDefaultValue = objInfo.DefaultValue;
+        
+        strValue += "    " + strDataType + " " + strName + ";\r\n";                
+      }      
+
+      strValue += "  }\r\n\r\n";
+    }
+  }  
+
+  return strValue;  
+}
+
+private string GetParametersParametersConsumer(WebPart objWebPart)
+{
+  string strValue = "    public void GetParameters(IDictionary objParameters)\r\n"
+  + "    {\r\n"
+  + "      foreach (DictionaryEntry objEntry in objParameters)\r\n"
+  + "      {\r\n"
+  + "        StateItem objStateItem;\r\n"
+  + "        switch (objEntry.Key.ToString())\r\n"
+  + "        {\r\n";
+
+  LinkedElementCollection<InformationObject> objInfoCollection = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart);
+  foreach (InformationObject objInfo in objInfoCollection)
+  {
+    string strName = objInfo.Name;
+    string strDataType = objInfo.DataType;
+    string strDefaultValue = objInfo.DefaultValue;
+  
+    strValue += "          case \"" + strName + "\":\r\n"          		
+	+ "            objStateItem = (StateItem) objEntry.Value;\r\n"
+	+ "            " + strName + " = objStateItem.Value.ToString();\r\n"
+	+ "            break;\r\n";
+  }
+  
+  strValue += "          default:\r\n"
+  + "            throw new Exception(\"unknown parameter\");\r\n" 
+  + "        }\r\n"
+  + "      }\r\n"
+  + "    }\r\n";
+  
+  return strValue;
+}
+
+private string GetParametersGetProvider(WebPart objWebPart)
+{
+  string strValue = "    [ConnectionConsumer(\"parameters consumer" + GetName(objWebPart) + "\")]\r\n"
+  + "    public void GetProvider(IWebPartParameters objProvider)\r\n"
+  + "    {\r\n"
+  + "      PropertyDescriptor[] objProperties = \r\n"
+  + "      {\r\n";
+  
+  LinkedElementCollection<InformationObject> objInfoCollection = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart);
+  for ( int i = 0; i < objInfoCollection.Count; i++ )
+  {
+    InformationObject objInfo = objInfoCollection[i];
+    string strName = objInfo.Name;
+    string strDataType = objInfo.DataType;
+    string strDefaultValue = objInfo.DefaultValue;
+
+    strValue += "        TypeDescriptor.GetProperties(this)[\"" + strName + "\"]";
+    
+    if ( i < objInfoCollection.Count - 1)
+    {
+      strValue += ",\r\n";
+    }
+    
+  }
+  
+  strValue += "\r\n      };\r\n\r\n"
+  + "      PropertyDescriptorCollection objSchema = new PropertyDescriptorCollection(objProperties);\r\n"
+  + "      objProvider.SetConsumerSchema(objSchema);\r\n\r\n"
+  + "      ParametersCallback objCallback = new ParametersCallback(GetParameters);\r\n"
+  + "      objProvider.GetParametersData(objCallback);\r\n"
+  + "    }\r\n";
+  
+  return strValue;
+}
+
+private string GetParametersConsumerRender(WebPart objWebPart)
+{
+  string strValue = "    protected override void RenderContents(HtmlTextWriter writer)\r\n"
+  + "    {\r\n";
+   
+  LinkedElementCollection<InformationObject> objInfoCollection = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart);
+  foreach (InformationObject objInfo in objInfoCollection)
+  {
+    string strName = objInfo.Name;
+    string strDataType = objInfo.DataType;
+    string strDefaultValue = objInfo.DefaultValue;
+    
+    strValue += "      writer.Write(\"" + strName + " : \" + " + strName + ");\r\n"
+    + "      writer.WriteBreak();\r\n\r\n";
+  }  
+  
+  strValue += "    }\r\n";
+  
+  return strValue;
+}
+
+private string GetRowConsumerRender(WebPart objWebPart)
+{
+  string strValue = "    protected override void RenderContents(HtmlTextWriter writer)\r\n"
+  + "    {\r\n"
+  + "      if (Data != null)\r\n"
+  + "      {\r\n"
+  + "        foreach (DataRow objRow in Data)\r\n"
+  + "        {\r\n";
+  
+  LinkedElementCollection<InformationObject> objInfoCollection = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart);
+  foreach (InformationObject objInfo in objInfoCollection)
+  {
+    string strName = objInfo.Name;
+    string strDataType = objInfo.DataType;
+    string strDefaultValue = objInfo.DefaultValue;
+
+    strValue += "          writer.Write(\"column " + strName + " : \" + objRow[\"" + strName + "\"]);\r\n"
+    + "          writer.WriteBreak();\r\n\r\n";
+  }
+  
+  strValue += "        }\r\n"
+  + "      }\r\n";
+  
+  strValue += "      else\r\n"
+  + "      {\r\n"
+  + "        writer.Write(\"Not connected\");\r\n"
+  + "      }\r\n"
+  + "    }\r\n";    
+
+  return strValue;
+}
+
+private string GetFieldConsumerGetField(WebPart objWebPart)
+{
+  InformationObject objInfo = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart)[0];
+  string strName = objInfo.Name;
+  
+  string strValue = "public void GetField(object objField)\r\n"
+  + "    {\r\n"
+  + "      if ( objField != null ) " + strName + " = objField.ToString();\r\n"
+  + "    }\r\n";
+  
+  return strValue;
+}
+
+private string GetFieldConsumerRender(WebPart objWebPart)
+{
+  InformationObject objInfo = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart)[0];
+  string strName = objInfo.Name;
+  
+  string strRender = "    protected override void RenderContents(HtmlTextWriter writer)\r\n"
+  + "    {\r\n"  
+  + "      writer.Write(" + strName + ".ToString());\r\n"
+  + "    }\r\n";  
+  
+  return strRender;
+}
+
+private bool IsCustomConsumer(WebPart objWebPart)
+{
+  IConnectable objInterface = GetConsumerInterface(objWebPart);    
+  return objInterface.ToString().IndexOf("CustomInterface") > 1;
+}
+
+private bool IsParametersConsumer(WebPart objWebPart)
+{
+  IConnectable objInterface = GetConsumerInterface(objWebPart);    
+  return objInterface.ToString().IndexOf("IWebPartParameters") > 1;
+}
+
+private bool IsTableConsumer(WebPart objWebPart)
+{
+  IConnectable objInterface = GetConsumerInterface(objWebPart);    
+  return objInterface.ToString().IndexOf("IWebPartTable") > 1;
+}
+
+private bool IsRowConsumer(WebPart objWebPart)
+{
+  IConnectable objInterface = GetConsumerInterface(objWebPart);    
+  return objInterface.ToString().IndexOf("IWebPartRow") > 1;
+}
+
+private bool IsFieldConsumer(WebPart objWebPart)
+{
+  IConnectable objInterface = GetConsumerInterface(objWebPart);    
+  return objInterface.ToString().IndexOf("IWebPartField") > 1;
+}
+
+private IConnectable GetConsumerInterface(WebPart objWebPart)
+{
+  IConnectable objInterface;
+  
+  if ( objWebPart.IConnectableInterface.Count > 0 )
+  {
+    objInterface = objWebPart.IConnectableInterface[0];    
+  }
+  else
+  {
+    WebPart objProvider = Connection.GetProvider(objWebPart)[0];
+    objInterface = objProvider.IConnectableInterface[0];
+  }  
+  
+  return objInterface;
+}
+
+private bool IsConsumer(WebPart objWebPart)
+{    
+  LinkedElementCollection<WebPart> objProviders = Connection.GetProvider(objWebPart);
+  return (objProviders.Count > 0);
+    
+}
+
+private string GetParametersData(WebPart objWebPart)
+{
+  string strValue = "    public void GetParametersData(ParametersCallback callback)\r\n"
+    + "    {\r\n"
+    + "      StateBag objParameters = new StateBag();\r\n"
+    + "      foreach (PropertyDescriptor objProperty in Parameters)\r\n"
+    + "      {\r\n"
+    + "        switch (objProperty.Name)\r\n"
+    + "        {\r\n";
+
+  LinkedElementCollection<InformationObject> objInfoCollection = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart);
+  foreach (InformationObject objInfo in objInfoCollection)
+  {
+    string strName = objInfo.Name;
+    string strDataType = objInfo.DataType;
+    string strDefaultValue = objInfo.DefaultValue;
+    
+    strValue += "          case \"" + strName + "\":\r\n"
+      + "            objParameters.Add(\"" + strName + "\", " + strName + ");\r\n"
+      + "            break;\r\n";
+  }  
+  
+  strValue += "          default:\r\n"
+    + "            throw new Exception(\"ParametersProvider: Unknown parameter name\");\r\n"
+    + "        }\r\n"
+    + "      }\r\n"
+    + "      callback.Invoke(objParameters);\r\n"
+    + "    }\r\n";
+    
+  return strValue;
+}
+
+private string GetTableData()
+{
+  string strValue = "public void GetTableData(TableCallback callback)\r\n"
+    + "    {\r\n"
+    + "      callback.Invoke(_dtData.Rows);\r\n"
+    + "    }\r\n";
+  
+  return strValue;
+}
+
+private string GetDataTableProviderCtor(WebPart objWebPart)
+{
+  string strCtor = "public " + objWebPart.Name + "()\r\n"
+  + "    {\r\n"
+  + "      _dtData = new DataTable();\r\n"
+  + "      _dtData.Locale = CultureInfo.InvariantCulture;\r\n\r\n";
+  
+  LinkedElementCollection<InformationObject> objInfoCollection = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart);
+  foreach (InformationObject objInfo in objInfoCollection)
+  {
+    string strName = objInfo.Name;
+    string strDataType = objInfo.DataType;
+    string strDefaultValue = objInfo.DefaultValue;
+  
+    strCtor += "      DataColumn column" + strName + "= new DataColumn();\r\n"
+      + "      column" + strName + ".DataType = typeof(" + strDataType + ");\r\n"
+      + "      column" + strName + ".ColumnName = \"" + strName + "\";\r\n"
+      + "      _dtData.Columns.Add(column" + strName + ");\r\n"
+      + "\r\n";
+  }
+  
+  strCtor += "      DataRow objRow = _dtData.NewRow();\r\n";
+  foreach (InformationObject objInfo in objInfoCollection)
+  {
+    string strName = objInfo.Name;
+    string strDataType = objInfo.DataType;
+    string strDefaultValue = objInfo.DefaultValue;
+
+    if (strDataType == "string" || strDataType == "String" )
+    {
+      strCtor += "      objRow[\"" + strName + "\"] = \"" + strDefaultValue + "\";\r\n";    
+    }
+    else
+    {
+      strCtor += "      objRow[\"" + strName + "\"] = " + strDefaultValue + ";\r\n";    
+    }
+  }						
+			
+  strCtor += "      _dtData.Rows.Add(objRow);\r\n";			
+  strCtor += "    }\r\n";
+  
+  return strCtor;
+}
+
+private string GetRender(WebPart objWebPart)
+{
+  string strRender = "protected override void RenderContents(HtmlTextWriter writer)\r\n"
+    + "    {\r\n"
+    + "      writer.Write(\"" + GetProviderRenderContent(objWebPart) + "\");\r\n"
+    + "    }\r\n";
+    
+  return strRender;
+}
+
+private string GetRowData(WebPart objWebPart)
+{
+  string strValue = "public void GetRowData(RowCallback callback)\r\n"
+    + "    {\r\n"
+    + "      DataRowCollection coll = _dtData.Rows;\r\n"
+    + "      DataRowView view = _dtData.DefaultView[0];\r\n"
+    + "      callback.Invoke(_dtData.Rows);\r\n"
+    + "    }\r\n";  
+  
+  return strValue;
+}
+private string GetName(WebPart objWebPart)
+{
+  return objWebPart.Name;
+}
+
+private string GetDefaultViewSchema()
+{
+  string strSchema = "public System.ComponentModel.PropertyDescriptorCollection Schema\r\n"
+    + "    {\r\n"
+    + "      get\r\n"
+    + "      {\r\n"
+    + "        return TypeDescriptor.GetProperties(_dtData.DefaultView[0]);\r\n"
+    + "      }\r\n"
+    + "    }\r\n";
+  
+  return strSchema;
+}
+
+private string GetSinglePropSchema(WebPart objWebPart)
+{
+  InformationObject objInfo = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart)[0];
+  
+  string strSchema = "public System.ComponentModel.PropertyDescriptor Schema\r\n"
+    + "    {\r\n" 
+    + "      get\r\n"
+    + "      {\r\n"    
+    + "        return TypeDescriptor.GetProperties(this)[\"" + objInfo.Name + "\"];\r\n"    
+    + "      }\r\n"
+    + "    }\r\n";
+  
+  return strSchema;
+}
+
+private string GetFieldValue(WebPart objWebPart)
+{
+  string strField = "";
+  InformationObject objInfo = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart)[0];
+  
+  strField = "\r\n    public void GetFieldValue(FieldCallback callback)\r\n"
+    + "    {\r\n"
+    + "      callback.Invoke(" + objInfo.Name + ");\r\n"
+    + "    }\r\n";
+
+  return strField;
+}
+
+private string GetColumns(WebPart objWebPart)
+{
+  string strColumns = "";
+  
+  LinkedElementCollection<InformationObject> objInfoCollection = WebPartReferencesInformationObjects.GetInformationObjects(objWebPart);
+  foreach (InformationObject objInfo in objInfoCollection)
+  {
+    string strName = objInfo.Name;
+    string strDataType = objInfo.DataType;
+    string strDefaultValue = objInfo.DefaultValue;
+    
+    string strMember;
+    if ( strDataType == "string" || strDataType == "String" )
+    {
+      strMember = "    private {0} _{1} = \"{2}\";";
+    }
+    else
+    {
+      strMember = "    private {0} _{1} = {2};";
+    }        
+     
+    strColumns += String.Format(strMember, strDataType, strName, strDefaultValue) + "\r\n";
+    
+    string strAttribute = "    [Personalizable(PersonalizationScope.Shared), WebBrowsable(true), WebDisplayName(\"{0}\"), WebDescription(\"Value for column {1}\")]";
+	strColumns += String.Format(strAttribute, strName, strName) + "\r\n";
+	
+	string strPropName = "    public {0} {1}";
+	strColumns += String.Format(strPropName, strDataType, strName) + "\r\n    {\r\n";
+    
+	string strGet = "      get { return _" + strName + "; }";
+	strColumns += strGet + "\r\n";
+
+	string strSet = "      set { _" + strName + " = value; }";
+	strColumns += strSet + "\r\n";
+	
+    string strClose = "    }\r\n\r\n";
+    strColumns += strClose;
+    
+  }
+  
+  return strColumns;
+}
+
+private bool IsCustomProvider(WebPart objWebPart)
+{
+  string strInterface = objWebPart.IConnectableInterface[0].ToString();
+  return strInterface.IndexOf("CustomInterface") > -1;
+}
+
+private bool IsParametersProvider(WebPart objWebPart)
+{
+  string strInterface = objWebPart.IConnectableInterface[0].ToString();
+  return strInterface.IndexOf("IWebPartParameter") > -1;
+}
+
+private bool IsTableProvider(WebPart objWebPart)
+{
+  string strInterface = objWebPart.IConnectableInterface[0].ToString();
+  return strInterface.IndexOf("IWebPartTable") > -1;
+}
+
+private bool IsRowProvider(WebPart objWebPart)
+{
+  string strInterface = objWebPart.IConnectableInterface[0].ToString();
+  return strInterface.IndexOf("IWebPartRow") > -1;
+}
+
+private bool IsFieldProvider(WebPart objWebPart)
+{
+  string strInterface = objWebPart.IConnectableInterface[0].ToString();
+  return strInterface.IndexOf("IWebPartField") > -1;
+}
+
+private string GetProviderRenderContent(WebPart objWebPart)
+{    
+  return "This is " + objWebPart.IConnectableInterface[0] + " provider";  
+}
+
+private bool IsProvider(WebPart objWebPart)
+{    
+  LinkedElementCollection<WebPart> objConsumers = Connection.GetConsumer(objWebPart);
+  return (objConsumers.Count > 0);
+}
+
+private string GetInterfaces(WebPart objWebPart)
+{	
+  string strInterfaces = String.Empty;
+
+  if (!IsProvider(objWebPart)) return "";
+  
+  foreach (IConnectable objInterface in objWebPart.IConnectableInterface)
+  {
+    if ( objInterface.ToString().IndexOf("CustomInterface") > -1 )
+    {
+      strInterfaces += ", " + objInterface.Name;
+    }
+    else
+    {
+      string strTypeName = objInterface.GetType().ToString();
+      string[] arrNamespace = strTypeName.Split('.');
+      strInterfaces += ", " + arrNamespace[arrNamespace.Length - 1];
+    }
+  }
+  
+  return strInterfaces;
+}
+#>

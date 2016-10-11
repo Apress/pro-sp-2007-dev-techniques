@@ -1,0 +1,66 @@
+<%@ WebService Language="C#" Class="LoisAndClark.PerformanceService" %>
+
+using System;
+using System.Web;
+using System.Web.Services;
+using System.Web.Services.Protocols;
+using System.Diagnostics;
+using System.Threading;
+using System.Web.Script.Services;
+
+namespace LoisAndClark
+{
+  [WebService(Namespace = "http://tempuri.org/")]
+  [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+  [ScriptService]
+  public class PerformanceService : System.Web.Services.WebService
+  {
+    [WebMethod]
+    public float GetProcessorTime()
+    {
+      PerformanceCounter objCounter = new PerformanceCounter();
+      objCounter.CategoryName = "Processor";
+      objCounter.CounterName = "% Processor Time";
+      objCounter.InstanceName = "_Total";
+      objCounter.MachineName = ".";
+      objCounter.ReadOnly = true;
+
+      int intCurrentCpuUsage = Convert.ToInt32(objCounter.NextValue());
+      Thread.Sleep(2000);
+
+      return objCounter.NextValue();
+    }
+
+    [WebMethod]
+    public float GetCounter2()
+    {
+      PerformanceCounter objCounter = new PerformanceCounter();
+      objCounter.CategoryName = "Web Service";
+      objCounter.CounterName = "Total Bytes Sent";
+      objCounter.InstanceName = "_Total";
+      objCounter.MachineName = ".";
+      objCounter.ReadOnly = true;
+
+      float fltPagesPerSecond = objCounter.NextValue();
+      Thread.Sleep(2000);
+
+      return objCounter.NextValue();
+    }
+
+    [WebMethod]
+    public float GetCounter3()
+    {
+      PerformanceCounter objCounter = new PerformanceCounter();
+      objCounter.CategoryName = "Web Service";
+      objCounter.CounterName = "Bytes Received/sec";
+      objCounter.InstanceName = "_Total";
+      objCounter.MachineName = ".";
+      objCounter.ReadOnly = true;
+
+      float fltCurrentCpuUsage = objCounter.NextValue();
+      Thread.Sleep(2000);
+
+      return objCounter.NextValue();
+    }
+  }
+}

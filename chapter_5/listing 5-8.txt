@@ -1,0 +1,45 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace Connections
+{
+  [Guid("f4e7c5b7-5acb-4990-a7e9-511d9ec5b94e")]
+  public class SecondProvider : System.Web.UI.WebControls.WebParts.WebPart, IMySecondInterface
+  {
+    public SecondProvider()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void Render(HtmlTextWriter writer)
+    {
+      writer.Write("SECOND PROVIDER");
+    }
+
+    [ConnectionProvider("connection provider")]
+    public IMySecondInterface GetProvider()
+    {
+      return this;
+    }
+
+    private string _strTitle = "Title from second provider";
+    public string CurrentTitle
+    {
+      get
+      {
+        return _strTitle;
+      }
+     set
+     {
+        _strTitle = value;
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+<?MicrosoftWindowsSharePointServices ContentTypeID="0x010100B4CBD48E029A4ad8B62CB0E41868F2B0"?>
+<udc:DataSource MajorVersion="2" MinorVersion="0" xmlns:udc="http://schemas.microsoft.com/office/infopath/2006/udc">
+  <udc:Name>Tasks</udc:Name>
+  <udc:Description/>
+  <udc:Type MajorVersion="2" MinorVersion="0" Type=""/>
+    <udc:ConnectionInfo Purpose="">
+      <udc:SelectCommand>
+        <udc:ListId>{4008B331-501E-4E73-A147-822D01E4326C}</udc:ListId>
+        <udc:WebUrl>http://[server]</udc:WebUrl>
+     </udc:SelectCommand>
+  </udc:ConnectionInfo>  
+</udc:DataSource>

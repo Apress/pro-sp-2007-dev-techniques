@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration>
+  <system.web>
+    <compilation debug="false">
+      <assemblies>
+        <add assembly="Microsoft.SharePoint, Version=12.0.0.0, Culture=neutral, PublicKeyToken=71E9BCE111E9429C"/>
+      </assemblies>
+    </compilation>
+    <webServices>
+      <protocols>
+        <remove name="HttpGet" />
+        <remove name="HttpPost" />
+        <remove name="HttpPostLocalhost" />
+        <add name="Documentation" />
+      </protocols>
+    </webServices>
+    <customErrors mode="On"/>
+  </system.web>
+  <location path="authentication.asmx">
+    <system.web>
+      <authorization>
+        <allow users="*"/>
+      </authorization>
+    </system.web>
+  </location>
+  <location path="wsdisco.aspx">
+    <system.web>
+      <authorization>
+        <allow users="*"/>
+      </authorization>
+    </system.web>
+  </location>
+  <location path="wswsdl.aspx">
+    <system.web>
+      <authorization>
+        <allow users="*"/>
+      </authorization>
+    </system.web>
+  </location>
+</configuration>

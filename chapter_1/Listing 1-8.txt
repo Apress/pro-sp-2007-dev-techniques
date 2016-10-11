@@ -1,0 +1,39 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+
+namespace LoisAndClark.AspNetExample
+{
+  public class NormalEditorPart : EditorPart
+  {
+    TextBox _txtNormalBox;
+
+    protected override void CreateChildControls()
+    {
+      _txtNormalBox = new TextBox();
+      _txtNormalBox.ID = "txtNormalBox";
+      _txtNormalBox.Text = "[Custom editor part]";
+      _txtNormalBox.TextMode = TextBoxMode.MultiLine;
+      _txtNormalBox.Rows = 5;
+      Controls.Add(_txtNormalBox);
+    }
+
+    public override bool ApplyChanges()
+    {
+      NormalPart objNormal = (NormalPart)WebPartToEdit;
+      objNormal.NormalValue = _txtNormalBox.Text;
+
+      return true;
+    }
+
+    public override void SyncChanges()
+    {
+      EnsureChildControls();
+      NormalPart objNormal = (NormalPart)WebPartToEdit;
+      _txtNormalBox.Text = objNormal.NormalValue;
+    }
+  }
+}

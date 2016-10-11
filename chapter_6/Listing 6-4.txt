@@ -1,0 +1,36 @@
+using System;
+using System.Web.UI;
+using NetUnity.WSRP;
+
+[OfferedHandle("6406eb81-1c38-4039-94b9-19a3599dd88a")]
+[Title("TestPortlet")]
+[DisplayName("TestPortlet")]
+[Modes(PortletMode.View, PortletMode.Edit, PortletMode.Help, PortletMode.Preview)]
+[WindowStates(WindowState.Maximized, WindowState.Minimized, WindowState.Normal, WindowState.Solo)]
+public class TestPortlet : NetUnity.WSRP.Portlet
+{
+  protected override void OnRenderView()
+  {
+    Response.Write("<H1>Hello World</H1>");
+  }
+
+  protected override void OnRenderEdit()
+  {
+    //TODO: Add code to render the edit view
+  }
+
+  protected override void OnRenderHelp()
+  {
+    //TODO: Add code to render portlet help text
+  }
+
+  protected override void OnRenderPreview()
+  {
+    //TODO: Add code to render the portlet in preview mode
+  }
+
+  protected override void OnAction()
+  {
+  //TODO: Add code to handle blocking action (no rendering)
+  }
+}

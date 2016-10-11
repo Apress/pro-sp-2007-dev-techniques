@@ -1,0 +1,46 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace Connections
+{
+  [Guid("07492348-a4ad-4a30-a9f5-c14bf6a3c373")]
+  public class FirstConsumer : System.Web.UI.WebControls.WebParts.WebPart
+  {
+    public FirstConsumer()
+    {
+      this.ExportMode = WebPartExportMode.All;
+    }
+
+    protected override void Render(HtmlTextWriter writer)
+    {
+      if (Provider != null)
+      {
+        writer.Write(Provider.Name);
+      }
+      else
+      {
+        writer.Write("no connection established");
+      }
+    }
+
+    [ConnectionConsumer("connection consumer")]
+    public void GetProvider(IMyFirstInterface objProvider)
+    {
+      Provider = objProvider;
+    }
+
+    private IMyFirstInterface _objProvider;
+    public IMyFirstInterface Provider
+    {
+      get { return _objProvider; }
+      set { _objProvider = value; }
+    }
+  }
+}

@@ -1,0 +1,38 @@
+using System;
+using System.Runtime.InteropServices;
+using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Serialization;
+using System.Security.Principal;
+using System.IO;
+using Microsoft.SharePoint;
+using Microsoft.SharePoint.WebControls;
+using Microsoft.SharePoint.WebPartPages;
+
+namespace LoisAndClark.ImpersonationAndElevation
+{
+  [Guid("47500629-54d5-4ac4-ac44-097b4ce2e3eb")]
+  public class SuperPart : System.Web.UI.WebControls.WebParts.WebPart
+  {
+ 
+    /// <summary>
+    /// Render this Web Part to the output parameter specified.
+    /// </summary>
+    /// <param name="output"> The HTML writer to write out to </param>
+    protected override void RenderContents(HtmlTextWriter writer)
+    {
+      try
+      {
+        string[] strCredentialData = null;
+        Credentials.GetCredentials(1, "SuperAccount", ref strCredentialData);
+        string strUserName = strCredentialData[0];
+        string strPassword = strCredentialData[1];
+        writer.Write("username: " + strUserName + " password: " + strPassword);
+      }
+      catch (Exception err)
+      {
+        writer.Write("error: " + err.Message);
+      }
+    }
+  }
+}
